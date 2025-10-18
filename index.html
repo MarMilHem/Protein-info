@@ -45,7 +45,44 @@
       margin-top: 3rem;
       font-size: 0.9rem;
       color: #777;
-    }
+    }.search-bar {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.search-bar input {
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 999px;
+  width: 280px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-bar input:focus {
+  border-color: #0059ff;
+  box-shadow: 0 0 6px rgba(0, 89, 255, 0.3);
+}
+
+.search-bar button {
+  background-color: #0059ff;
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.search-bar button:hover {
+  background-color: #0040cc;
+}
+
+    
   </style>
 </head>
 <body>
@@ -59,7 +96,7 @@
   </p>
 
   <p>🚧 This site is under development — more features coming soon!</p>
-  
+
 <!-- 🔍 Search Bar -->
 <form class="search-bar" action="#" method="get">
   <input type="text" name="query" placeholder="Search for a protein brand..." required />
