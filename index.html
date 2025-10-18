@@ -10,17 +10,37 @@
       background: #f7f9fc;
       color: #222;
       margin: 0;
-      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
       text-align: center;
+      padding: 2rem;
     }
+
+    .title-box {
+      background: #e6f3ff;
+      border-radius: 20px;
+      padding: 2rem 3rem;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      display: inline-block;
+      margin-bottom: 1.5rem;
+    }
+
     h1 {
+      margin: 0;
+      font-size: 2.5rem;
       color: #0059ff;
     }
+
     p {
       max-width: 600px;
-      margin: 1rem auto;
+      margin: 0.75rem auto;
       line-height: 1.6;
+      color: #333;
     }
+
     footer {
       margin-top: 3rem;
       font-size: 0.9rem;
@@ -29,8 +49,11 @@
   </style>
 </head>
 <body>
-  <h1>Welcome to Protein Info</h1>
-   <p>
+  <div class="title-box">
+    <h1>Welcome to Protein Info</h1>
+  </div>
+
+  <p>
     A place where you can explore and compare different protein brands — 
     their prices, macros, and nutritional profiles — all in one spot.
   </p>
