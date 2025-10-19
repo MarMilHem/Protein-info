@@ -5,16 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Protein Info</title>
   <style>
+    :root{
+      --bg:#f7f9fc; --text:#1f2937; --muted:#6b7280; --ring:#e5e7eb;
+      --brand:#0059ff; --brand-600:#0045d0;
+      --card:#ffffff; --shadow:0 6px 24px rgba(0,0,0,.07);
+      --best:#10b98120; --best-ring:#10b98155;
+    }
+
     body {
       font-family: system-ui, sans-serif;
-      background: #f7f9fc;
-      color: #222;
+      background: var(--bg);
+      color: var(--text);
       margin: 0;
       padding: 2rem;
       text-align: center;
+      line-height: 1.55;
     }
-    h1 { color: #0059ff; margin-bottom: 1rem; }
+    h1 { color: var(--brand); margin-bottom: .5rem; }
     h2 { margin: 1.5rem 0 .75rem; }
+
+    /* header badges (icons) */
+    .badges{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap;margin:.25rem 0 1rem}
+    .badge{display:inline-flex;align-items:center;gap:.5rem;background:var(--card);border:1px solid var(--ring);
+      padding:.4rem .6rem;border-radius:999px;box-shadow:var(--shadow);font-weight:600}
+    .badge svg{width:18px;height:18px;fill:currentColor;color:var(--brand)}
+
     .btn {
       background: #eee;
       border: 1px solid #ccc;
@@ -25,45 +40,13 @@
     }
     .btn:hover { background: #ddd; }
     .btn-primary {
-      background: #0059ff;
+      background: var(--brand);
       color: white;
-      border-color: #0059ff;
+      border-color: var(--brand);
     }
-    .btn-primary:hover { background: #0045d0; }
+    .btn-primary:hover { background: var(--brand-600); }
 
-    table.compare {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-      font-size: .95rem;
-    }
-    table.compare th,
-    table.compare td {
-      padding: .5rem;
-      border-bottom: 1px solid #ddd;
-    }
-    table.compare th.num,
-    table.compare td.num {
-      text-align: right;
-    }
-
-    .chip {
-      display:inline-block;
-      background:#e5eaff;
-      color:#0059ff;
-      border-radius:999px;
-      padding:0 8px;
-      font-size:.8rem;
-      margin-left:4px;
-    }
-
-    footer {
-      margin-top: 3rem;
-      font-size: 0.9rem;
-      color: #777;
-    }
-
-    /* search bar + filters */
+    /* search bar + filters (compact) */
     .search-bar {
       display: flex;
       flex-wrap: wrap;
@@ -76,57 +59,131 @@
     .search-bar select {
       padding: 8px;
       border: 1px solid #ccc;
-      border-radius: 6px;
+      border-radius: 10px;
+      background: #fff;
+      box-shadow: var(--shadow);
     }
-    .search-bar input { flex: 1; min-width: 220px; }
+    /* keep it short on wide screens */
+    .search-bar input { flex: 0 1 480px; min-width: 220px; max-width: 520px; }
+
     .result {
       background:white;
       padding:12px;
-      border-radius:8px;
+      border-radius:12px;
       margin-bottom:10px;
       text-align:left;
-      box-shadow:0 1px 3px rgba(0,0,0,0.06);
-    } /* Make results scrollable if too tall */
-  #brandResults {
-    max-height: 480px;      /* ≈ 3–4 result cards visible */
-    overflow-y: auto;
-    margin-bottom: 1rem;
-    padding-right: 6px;     /* avoid scrollbar overlap */
-  }
+      box-shadow:0 6px 18px rgba(0,0,0,0.06);
+    }
+    /* Results list scrolling */
+    #brandResults {
+      max-height: 480px;
+      overflow-y: auto;
+      margin-bottom: 1rem;
+      padding-right: 6px;
+      scrollbar-gutter: stable;
+    }
+    #brandResults::-webkit-scrollbar { width: 8px; }
+    #brandResults::-webkit-scrollbar-thumb { background: #c3c8d4; border-radius: 4px; }
+    #brandResults::-webkit-scrollbar-thumb:hover { background: #9ea4b3; }
 
-  /* Optional: nicer scrollbar look (modern browsers) */
-  #brandResults::-webkit-scrollbar {
-    width: 8px;
-  }
-  #brandResults::-webkit-scrollbar-thumb {
-    background: #c3c8d4;
-    border-radius: 4px;
-  }
-  #brandResults::-webkit-scrollbar-thumb:hover {
-    background: #9ea4b3;
-  }
+    /* Compare table polish */
+    .table-wrap{
+      overflow:auto;
+      background:linear-gradient(#fff,#fff) padding-box, linear-gradient(to right, transparent, transparent) border-box;
+      border:1px solid var(--ring);
+      border-radius:14px;
+      box-shadow:var(--shadow);
+    }
+    table.compare {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-top: 0;
+      font-size: .95rem;
+      min-width: 760px;
+      text-align:left;
+    }
+    table.compare th,
+    table.compare td {
+      padding: .7rem .9rem;
+      border-bottom: 1px solid var(--ring);
+    }
+    table.compare th.num,
+    table.compare td.num { text-align: right; }
+    .compare thead th{
+      position:sticky; top:0; background:#fff; z-index:1;
+      font-size:.9rem; color:#111;
+    }
+    .compare tbody tr:nth-child(odd){background:#fafafa}
+    .compare tbody tr:hover{background:#f3f7ff}
 
-  /* Prevent layout jump when scrollbar appears */
-  #brandResults {
-    scrollbar-gutter: stable;
-  }
+    /* protein cell visualization */
+    .metric .bar{height:8px;border-radius:6px;background:#e5e7eb;position:relative;overflow:hidden;margin-top:4px}
+    .metric .bar > i{position:absolute;inset:0;width:0%;display:block;background:linear-gradient(90deg,#93c5fd,#60a5fa)}
+    td.protein.is-best{background:var(--best)!important;box-shadow:inset 0 0 0 2px var(--best-ring)}
+    .best-tag{display:inline-flex;align-items:center;gap:.35rem;background:#10b981;color:#053c2a;border-radius:999px;padding:.15rem .45rem;font-size:.75rem;font-weight:700;margin-left:.5rem}
+
+    .chip {
+      display:inline-block;
+      background:#e5eaff;
+      color:var(--brand);
+      border-radius:999px;
+      padding:0 8px;
+      font-size:.8rem;
+      margin-left:4px;
+    }
+
+    footer {
+      margin-top: 3rem;
+      font-size: 0.9rem;
+      color: #777;
+    }
+
+    /* header row corners */
+    .compare thead th:first-child{border-top-left-radius:14px}
+    .compare thead th:last-child{border-top-right-radius:14px}
+    .compare tbody tr:last-child td:first-child{border-bottom-left-radius:14px}
+    .compare tbody tr:last-child td:last-child{border-bottom-right-radius:14px}
+
+    /* layout bits */
+    #compare-head{display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
+    #compare-empty{color:var(--muted);margin:.75rem 0}
   </style>
 </head>
 <body>
   <main>
     <h1>Protein Info</h1>
+
+    <!-- tasteful icons under title -->
+    <div class="badges">
+      <span class="badge" title="Protein">
+        <!-- scoop -->
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 12a6 6 0 1 1 12 0v2.2l3.6 1.2a2 2 0 1 1-.64 3.9L16 18.5V12A8 8 0 1 0 0 12a1 1 0 0 0 2 0 6 6 0 0 1 2-4z"/>
+        </svg>
+        Protein
+      </span>
+      <span class="badge" title="Dietary">
+        <!-- leaf/check -->
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M20.5 3.5c-6.4-.7-10.9 1.6-13.8 4.5C3.2 11.5 2 15.1 2 18.3c0 .9.8 1.7 1.7 1.7 3.2 0 6.8-1.2 10.3-4.7 2.9-2.9 5.2-7.4 4.5-13.8zM9.5 14l-2-2 1.4-1.4 1 1 4-4L15.3 9l-4.9 5z"/>
+        </svg>
+        Dietary
+      </span>
+    </div>
+
     <p>Explore and compare different protein brands — their macros, price, and quality.</p>
 
     <!-- 🔍 Unified Search + Filters -->
-    <form id="brandSearchForm" class="search-bar">
+    <form id="brandSearchForm" class="search-bar" role="search" aria-label="Search protein brands">
       <input type="text" name="q" placeholder="Search for a protein brand..." required />
-      <select name="type" id="filterType">
+      <select name="type" id="filterType" aria-label="Filter by type">
         <option value="">All types</option>
         <option value="whey">Whey</option>
         <option value="isolate">Isolate</option>
         <option value="vegan">Vegan</option>
       </select>
-      <select name="sort" id="sortOrder">
+      <select name="sort" id="sortOrder" aria-label="Sort order">
         <option value="">Sort by</option>
         <option value="price">Lowest price</option>
         <option value="protein">Highest protein</option>
@@ -167,6 +224,11 @@
             <tbody id="compareBody"></tbody>
           </table>
         </div>
+
+        <p class="legend" style="color:var(--muted);margin:.6rem .2rem;text-align:left">
+          <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:var(--best);box-shadow:inset 0 0 0 2px var(--best-ring);vertical-align:middle;margin-right:.35rem"></span>
+          Highest protein per serving
+        </p>
 
         <div id="compare-empty">No items yet. Use your search results or the list above to “Add to compare”.</div>
       </div>
@@ -251,7 +313,7 @@
     });
   </script>
 
-  <!-- ⚙️ Compare module -->
+  <!-- ⚙️ Compare module + visualization/highlight -->
   <script>
   (() => {
     const STORAGE_KEY = 'protein_compare_items_v1';
@@ -298,6 +360,42 @@
       return x;
     }
 
+    function visualizeProteinCells(){
+      const table = els.table;
+      const proteinCells = Array.from(table.querySelectorAll('tbody tr td:nth-child(5)')); // 5th column = Protein/serving
+      const values = proteinCells.map(td => {
+        const v = Number(String(td.dataset.protein || td.textContent).replace(/[^\d.]/g,''));
+        return Number.isFinite(v) ? v : 0;
+      });
+      const max = Math.max(0, ...values);
+      // build bars + mark best
+      proteinCells.forEach((td, i) => {
+        const v = values[i];
+        td.classList.add('metric','protein');
+        // keep existing text
+        const valText = td.textContent.trim();
+        td.innerHTML = '';
+        const strong = document.createElement('div');
+        strong.style.fontWeight = '600';
+        strong.textContent = valText;
+        const bar = document.createElement('div'); bar.className='bar';
+        const fill = document.createElement('i'); fill.style.width = (max? (v/max)*100 : 0) + '%';
+        bar.appendChild(fill);
+        td.appendChild(strong);
+        td.appendChild(bar);
+      });
+      // highlight best (first if tie)
+      const bestIndex = values.indexOf(max);
+      if(bestIndex>=0 && proteinCells[bestIndex]){
+        const best = proteinCells[bestIndex];
+        best.classList.add('is-best');
+        const tag = document.createElement('span');
+        tag.className='best-tag';
+        tag.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" style="fill:currentColor"><path d="M12 2l2.9 6 6.1.5-4.6 4 1.4 6-5.8-3.3L6.2 19l1.4-6-4.6-4 6.1-.5z"/></svg> BEST`;
+        best.appendChild(tag);
+      }
+    }
+
     function render(){
       const items=load();
       els.count.textContent=String(items.length);
@@ -313,7 +411,7 @@
             <td>${it.product??'—'}</td>
             <td class="num">${fmt(it.servingSizeG,0)}</td>
             <td class="num">${money(it.pricePerServing)}</td>
-            <td class="num">${fmt(it.proteinPerServing,1)}</td>
+            <td class="num" data-protein="${it.proteinPerServing ?? ''}">${fmt(it.proteinPerServing,1)}</td>
             <td class="num">${fmt(it.caloriesPerServing,0)}</td>
             <td class="num">${fmt(it.carbsPerServing,1)}</td>
             <td class="num">${fmt(it.fatPerServing,1)}</td>
@@ -321,6 +419,8 @@
           </tr>
         `;
       }).join('');
+      // after rows exist, apply visuals & highlight
+      visualizeProteinCells();
     }
 
     window.Compare={
