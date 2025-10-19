@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Protein Info</title>
+  <title>Protein Info — EU</title>
   <style>
     :root{
       --bg:#f7f9fc; --text:#1f2937; --muted:#6b7280; --ring:#e5e7eb;
@@ -101,24 +101,35 @@
     .suggestions li .tag { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: #f3f4f6; }
     .suggestions li[aria-selected="true"], .suggestions li:hover { background: #f7f9fc; }
 
-    .result {
-      background:white;
-      padding:12px;
-      border-radius:12px;
-      margin-bottom:10px;
+    /* Results grid (cards) */
+    #brandResults { margin: 0 auto 1rem; }
+    .card-grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+      align-items: stretch;
       text-align:left;
-      box-shadow:0 6px 18px rgba(0,0,0,0.06);
     }
-    #brandResults {
-      max-height: 480px;
-      overflow-y: auto;
-      margin-bottom: 1rem;
-      padding-right: 6px;
-      scrollbar-gutter: stable;
+    .card{
+      background:var(--card);
+      border:1px solid var(--ring);
+      border-radius:14px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      transition:transform .12s ease;
     }
-    #brandResults::-webkit-scrollbar { width: 8px; }
-    #brandResults::-webkit-scrollbar-thumb { background: #c3c8d4; border-radius: 4px; }
-    #brandResults::-webkit-scrollbar-thumb:hover { background: #9ea4b3; }
+    .card:hover{ transform: translateY(-2px); }
+    .card .img{ aspect-ratio: 1/1; background:#eef2ff; display:grid; place-items:center; overflow:hidden }
+    .card .img img{ width:100%; height:100%; object-fit:cover }
+    .card .body{ padding:.8rem .9rem; display:flex; flex-direction:column; gap:.35rem }
+    .card .brand{ font-weight:700 }
+    .card .name{ font-size:.95rem; min-height:2.4em; line-height:1.3 }
+    .card .meta{ font-size:.85rem; color:var(--muted) }
+    .tags{ display:flex; flex-wrap:wrap; gap:.35rem; margin-top:.35rem }
+    .tag{ font-size:.72rem; border:1px solid var(--ring); padding:.12rem .45rem; border-radius:999px; background:#fff }
+    .actions{ display:flex; gap:.5rem; margin-top:.6rem }
 
     /* Compare table styling */
     .table-wrap{
@@ -183,7 +194,7 @@
 </head>
 <body>
   <main>
-    <h1>Protein Info</h1>
+    <h1>Protein Info — EU Brands</h1>
 
     <div class="badges">
       <span class="badge" title="Protein">
@@ -200,7 +211,7 @@
       </span>
     </div>
 
-    <p>Explore and compare different protein brands — their macros, price, and quality.</p>
+    <p>Explore and compare different protein brands available in Europe — macros, price, and more.</p>
 
     <!-- 🔍 Unified Search + Filters (with autocomplete) -->
     <form id="brandSearchForm" class="search-bar" role="search" aria-label="Search protein brands">
@@ -229,9 +240,9 @@
       </select>
       <select name="sort" id="sortOrder" aria-label="Sort order">
         <option value="">Sort by</option>
-        <option value="price">Lowest price</option>
-        <option value="protein">Highest protein</option>
-        <option value="calories">Lowest calories</option>
+        <option value="price">Lowest price/kg</option>
+        <option value="protein">Highest protein/100g</option>
+        <option value="calories">Lowest calories/100g</option>
       </select>
       <button type="submit" class="btn btn-primary">🔍 Search</button>
     </form>
@@ -274,7 +285,7 @@
           Highest protein per serving
         </p>
 
-        <div id="compare-empty">No items yet. Use your search results or the list above to “Add to compare”.</div>
+        <div id="compare-empty">No items yet. Use search results to “Add to compare”.</div>
       </div>
     </section>
 
@@ -301,19 +312,74 @@
     };
   </script>
 
-  <!-- 🔎 Search + filter logic + ⚡ autocomplete -->
+  <!-- 🔎 Local dataset search + autocomplete (reads /api/products) -->
   <script>
     const formEl = document.getElementById('brandSearchForm');
     const resultsEl = document.getElementById('brandResults');
 
-    // ------- Autocomplete (type-ahead) -------
+    // Local dataset cache
+    const DATA = { products: [], ready: false };
+
+    // Load once on page start
+    (async function bootstrap(){
+      try{
+        resultsEl.innerHTML = '<div style="color:#666">Loading products…</div>';
+        const res = await fetch('/api/products', { headers: { 'Cache-Control': 'no-cache' }});
+        const raw = await res.json();
+        DATA.products = raw.map(normalizeFromBackend).filter(Boolean);
+        DATA.ready = true;
+        resultsEl.innerHTML = '';
+      }catch(e){
+        resultsEl.innerHTML = '<div style="color:red">Could not load products.</div>';
+      }
+    })();
+
+    function normalizeFromBackend(p){
+      // Map snake_case (backend) → camelCase (frontend)
+      const brand = p.brand || '—';
+      const product = p.product || p.name || '—';
+      const origin = p.country_of_origin || p.country || '';
+      const servingSizeG = num(p.serving_size_g);
+      const proteinPer100g = num(p.protein_per_100g);
+      const caloriesPer100g = num(p.kcal_per_100g);
+      const carbsPer100g = num(p.carb_per_100g);
+      const fatPer100g = num(p.fat_per_100g);
+      const priceEur = num(p.price_eur);
+      // try to infer price/kg if a "1 kg" format is present
+      const has1kg = Array.isArray(p.formats) && p.formats.some(x => /(^|\s)1\s*kg\b/i.test(x));
+      const pricePerKg = (priceEur!=null && has1kg) ? priceEur : undefined;
+      const type = inferType(product);
+      return {
+        id: String(p.id || `${brand}-${product}`).toLowerCase().replace(/[^a-z0-9]+/g,'-'),
+        brand, product, origin,
+        type,
+        servingSizeG,
+        proteinPer100g,
+        caloriesPer100g,
+        carbsPer100g,
+        fatPer100g,
+        pricePerKg,
+        image: p.image || '',
+        url: p.url || ''
+      };
+    }
+    function num(v){ return (v==null || v==='') ? undefined : Number(v); }
+    function inferType(name){
+      const s = String(name||'').toLowerCase();
+      if(/isolate/.test(s)) return 'isolate';
+      if(/vegan|pea|soya|rice|plant/.test(s)) return 'vegan';
+      if(/whey|casein|milk/.test(s)) return 'whey';
+      return '';
+    }
+    function escapeHTML(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+    /* ---------- Autocomplete (pure client-side) ---------- */
     (function initAutocomplete(){
       const combo = formEl.querySelector('.combo');
       const input = document.getElementById('query');
       const list  = document.getElementById('suggestions');
 
-      let debounceTimer=null, activeIndex=-1, items=[], aborter=null;
-      const ENDPOINT = "/search";
+      let debounceTimer=null, activeIndex=-1, items=[];
 
       function setExpanded(open){
         combo.setAttribute("aria-expanded", open ? "true" : "false");
@@ -323,20 +389,17 @@
         }
       }
       function renderList(data){
-        items = data;
+        items = data.slice(0, 10);
         activeIndex = -1;
         if (!items.length){ list.innerHTML=""; setExpanded(false); return; }
         list.innerHTML = items.map((p,i)=>{
           const id="opt-"+i;
-          const brand = p.brand || "—";
-          const product = p.product || p.name || "—";
-          const type = p.type || "";
-          const origin = p.origin ? ` · ${p.origin}` : "";
           const protein = (p.proteinPer100g != null) ? ` · ${p.proteinPer100g}g/100g` : "";
-          const tag = type ? `<span class="tag">${type}</span>` : "";
+          const tag = p.type ? `<span class="tag">${p.type}</span>` : "";
+          const origin = p.origin ? ` · ${p.origin}` : "";
           return `
             <li id="${id}" role="option" aria-selected="false" data-index="${i}">
-              <div><strong>${brand}</strong> — ${product}<small>${origin}${protein}</small></div>
+              <div><strong>${escapeHTML(p.brand)}</strong> — ${escapeHTML(p.product)}<small>${origin}${protein}</small></div>
               ${tag}
             </li>`;
         }).join("");
@@ -350,31 +413,21 @@
           if(sel){ input.setAttribute("aria-activedescendant", el.id); el.scrollIntoView({block:"nearest"}); }
         });
       }
-      async function fetchSuggestions(q){
-        if (aborter) aborter.abort();
-        aborter = new AbortController();
-        const url = new URL(ENDPOINT, location.origin);
-        url.searchParams.set("q", q);
-        url.searchParams.set("limit", "10");
-        url.searchParams.set("external", "1"); // richer suggestions
-        try{
-          const res = await fetch(url.toString(), { signal: aborter.signal });
-          const json = await res.json();
-          const results = Array.isArray(json.results) ? json.results : [];
-          renderList(results);
-        }catch(e){
-          if(e.name==="AbortError") return;
-          renderList([]);
-        }
+      function localSuggest(q){
+        if(!DATA.ready) return [];
+        const s = q.trim().toLowerCase();
+        if(!s) return [];
+        return DATA.products.filter(p =>
+          (p.brand||'').toLowerCase().includes(s) ||
+          (p.product||'').toLowerCase().includes(s)
+        ).slice(0, 25);
       }
       function onInput(){
         const q = input.value.trim();
-        if (!q){ renderList([]); return; }
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(()=>{
-          // (optional) require 2+ chars:
-          // if(q.length<2){ renderList([]); return; }
-          fetchSuggestions(q);
+          if(q.length<1){ renderList([]); return; }
+          renderList(localSuggest(q));
         }, 120);
       }
       function choose(index){
@@ -414,59 +467,66 @@
         if(!combo.contains(e.target)) setExpanded(false);
       });
     })();
-    // ------- /Autocomplete -------
+    /* ---------- /Autocomplete ---------- */
 
-    formEl.addEventListener('submit', async (e) => {
+    /* ---------- Search submit (client-side filter over DATA.products) ---------- */
+    formEl.addEventListener('submit', (e) => {
       e.preventDefault();
-      const query = formEl.q.value.trim();
+      if(!DATA.ready){ resultsEl.textContent = "Still loading products…"; return; }
+
+      const query = formEl.q.value.trim().toLowerCase();
       const type = formEl.type.value;
       const sort = formEl.sort.value;
 
-      if (!query) return;
-      resultsEl.textContent = "🔍 Searching...";
+      let items = DATA.products.filter(p => {
+        const hit = !query || (p.brand||'').toLowerCase().includes(query) || (p.product||'').toLowerCase().includes(query);
+        const typeOk = !type || (p.type||'').toLowerCase().includes(type);
+        return hit && typeOk;
+      });
 
-      try {
-        const params = new URLSearchParams({ q: query, type, sort, external: "1" }); // include external blend
-        const res = await fetch(`/search?${params.toString()}`);
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Search failed");
-
-        let items = data.results || [];
-        if (!items.length) {
-          resultsEl.textContent = "No matching protein brands.";
-          return;
-        }
-
-        // client-side sort
-        if (sort === "price") items.sort((a,b)=>(a.pricePerKg??9999)-(b.pricePerKg??9999));
-        if (sort === "protein") items.sort((a,b)=>(b.proteinPer100g??0)-(a.proteinPer100g??0));
-        if (sort === "calories") items.sort((a,b)=>(a.caloriesPer100g??9999)-(b.caloriesPer100g??9999));
-
-        // client-side type filter
-        if (type) items = items.filter(p => (p.type||"").toLowerCase().includes(type.toLowerCase()));
-
-        resultsEl.innerHTML = items.map(p => `
-          <article class="result">
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-              <div>
-                <div style="font-weight:700;">${p.brand ?? ""}</div>
-                <div>${p.product ?? ""}</div>
-                <div style="font-size:.9rem;color:#666;">${p.type || ""}</div>
-              </div>
-              <button class="btn" onclick='addToCompare(${JSON.stringify(p)})'>+ Add to compare</button>
-            </div>
-            <div style="margin-top:.5rem;font-size:.9rem;color:#444;">
-              <strong>Serving:</strong> ${p.servingSizeG ?? "—"} g ·
-              <strong>Protein/100g:</strong> ${p.proteinPer100g ?? "—"} g ·
-              <strong>Price/kg:</strong> ${p.pricePerKg!=null?"€"+Number(p.pricePerKg).toFixed(2):"—"} ·
-              <strong>Produced In:</strong> ${p.origin || "Unknown"}
-            </div>
-          </article>
-        `).join('');
-      } catch (err) {
-        resultsEl.innerHTML = `<span style="color:red;">❌ ${err.message}</span>`;
+      if (!items.length) {
+        resultsEl.innerHTML = "<div style='color:#666'>No matching protein brands.</div>";
+        return;
       }
+
+      if (sort === "price") items.sort((a,b)=>(a.pricePerKg??9999)-(b.pricePerKg??9999));
+      if (sort === "protein") items.sort((a,b)=>(b.proteinPer100g??0)-(a.proteinPer100g??0));
+      if (sort === "calories") items.sort((a,b)=>(a.caloriesPer100g??9999)-(b.caloriesPer100g??9999));
+
+      renderResults(items);
     });
+
+    function renderResults(items){
+      resultsEl.className = 'card-grid';
+      resultsEl.innerHTML = items.map(cardHTML).join('');
+    }
+
+    function cardHTML(p){
+      const img = p.image ? `<img loading="lazy" src="${p.image}" alt="${escapeHTML(p.product)}">` : "🥤";
+      const price = (p.pricePerKg!=null) ? `• €${Number(p.pricePerKg).toFixed(2)}/kg` : "";
+      const kcal = (p.caloriesPer100g!=null) ? `${p.caloriesPer100g} kcal/100g` : "—";
+      const prot = (p.proteinPer100g!=null) ? `${p.proteinPer100g}g/100g` : "—";
+      const tags = [
+        p.type ? `<span class="tag">${escapeHTML(p.type)}</span>` : "",
+        p.origin ? `<span class="tag">${escapeHTML(p.origin)}</span>` : ""
+      ].join('');
+      const addPayload = escapeHTML(JSON.stringify(p));
+      return `
+        <article class="card">
+          <div class="img">${img}</div>
+          <div class="body">
+            <div class="brand">${escapeHTML(p.brand)}</div>
+            <div class="name">${escapeHTML(p.product)}</div>
+            <div class="meta">${prot} • ${kcal} ${price ? ' '+price : ''}</div>
+            <div class="tags">${tags}</div>
+            <div class="actions">
+              <button class="btn btn-primary" onclick='addToCompare(JSON.parse("${addPayload}"))'>Add to compare</button>
+              ${p.url ? `<a class="btn" href="${p.url}" target="_blank" rel="noopener">View</a>` : ''}
+            </div>
+          </div>
+        </article>
+      `;
+    }
   </script>
 
   <!-- ⚙️ Compare module + visualization/highlight -->
@@ -491,7 +551,7 @@
 
     const num = v => (v===null||v===undefined||v==='') ? undefined : Number(v);
     const fmt = (v,d=1)=>(v==null||Number.isNaN(v))?'—':Number(v).toFixed(d);
-    const money = v=>(v==null||Number.isNaN(v))?'—':new Intl.NumberFormat(undefined,{style:'currency',currency:'EUR'}).format(Number(v));
+    const money = v=>(v==null||Number.isNaN(v))?'—':new Intl.NumberFormat(undefined,{style:'currency',currency:'EUR'}).format(Number(v)));
 
     function deriveServingFields(item){
       const x={...item};
