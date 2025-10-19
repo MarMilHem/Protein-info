@@ -551,7 +551,7 @@
 
     const num = v => (v===null||v===undefined||v==='') ? undefined : Number(v);
     const fmt = (v,d=1)=>(v==null||Number.isNaN(v))?'—':Number(v).toFixed(d);
-    const money = v=>(v==null||Number.isNaN(v))?'—':new Intl.NumberFormat(undefined,{style:'currency',currency:'EUR'}).format(Number(v)));
+  const money = v=>(v==null||Number.isNaN(v))?'—':new Intl.NumberFormat(undefined,{style:'currency',currency:'EUR'}).format(Number(v));
 
     function deriveServingFields(item){
       const x={...item};
