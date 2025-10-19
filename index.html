@@ -86,7 +86,30 @@
       margin-bottom:10px;
       text-align:left;
       box-shadow:0 1px 3px rgba(0,0,0,0.06);
-    }
+    } /* Make results scrollable if too tall */
+  #brandResults {
+    max-height: 480px;      /* ≈ 3–4 result cards visible */
+    overflow-y: auto;
+    margin-bottom: 1rem;
+    padding-right: 6px;     /* avoid scrollbar overlap */
+  }
+
+  /* Optional: nicer scrollbar look (modern browsers) */
+  #brandResults::-webkit-scrollbar {
+    width: 8px;
+  }
+  #brandResults::-webkit-scrollbar-thumb {
+    background: #c3c8d4;
+    border-radius: 4px;
+  }
+  #brandResults::-webkit-scrollbar-thumb:hover {
+    background: #9ea4b3;
+  }
+
+  /* Prevent layout jump when scrollbar appears */
+  #brandResults {
+    scrollbar-gutter: stable;
+  }
   </style>
 </head>
 <body>
