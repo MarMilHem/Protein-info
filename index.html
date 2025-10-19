@@ -354,7 +354,7 @@
         aborter = new AbortController();
         const url = new URL(ENDPOINT, location.origin);
         url.searchParams.set("q", q);
-        url.searchParams.set("limit", "10");
+  url.searchParams.set("limit", "100");
         url.searchParams.set("external", "1"); // richer suggestions
         try{
           const res = await fetch(url.toString(), { signal: aborter.signal });
@@ -425,8 +425,8 @@
       resultsEl.textContent = "🔍 Searching...";
 
       try {
-        const params = new URLSearchParams({ q: query, type, sort, external: "1" }); // include external blend
-        const res = await fetch(`/search?${params.toString()}`);
+  const params = new URLSearchParams({ q: query, type, sort, external: "1", limit: "1000" }); // request more results
+  const res = await fetch(`/search?${params.toString()}`);
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Search failed");
 

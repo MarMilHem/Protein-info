@@ -9,14 +9,19 @@ export async function onRequest({ request, env }) {
   const qRaw   = (url.searchParams.get("q") || "").trim();
   const typeQ  = normalize(url.searchParams.get("type") || "");   // e.g., "whey", "isolate", "vegan"
   const sortQ  = normalize(url.searchParams.get("sort") || "");   // "price" | "protein" | "calories"
-  const limit  = clampInt(url.searchParams.get("limit"), 500, 1, 500);
   const useExt = url.searchParams.get("external") === "1";        // add &external=1 to blend external results
+  const stats = url.searchParams.get("stats") === "1";
 
   const q = normalize(qRaw);
 
   // 1) Load catalog from KV (written by your Worker)
   const json = await env.PRODUCTS.get("products.json");
   const catalog = json ? safeParse(json) : [];
+
+  // Default limit: if client doesn't specify, return the full catalog (up to a generous cap).
+  // This makes the UI show all available brands without the client needing to pass a large `limit`.
+  const defaultLimit = Math.max(500, Array.isArray(catalog) ? catalog.length : 500);
+  const limit = clampInt(url.searchParams.get("limit"), defaultLimit, 1, Math.max(10000, defaultLimit));
 
   // (Optional) Seed / merge a small curated list to ensure popular brands exist.
   const MERGE_CURATED = false;
