@@ -3,8 +3,13 @@
 
 export async function onRequest({ request, env }) {
   const url = new URL(request.url);
-  const qRaw = (url.searchParams.get("q") || "").trim();
+
+  // ── Inputs: query + filters + sort ───────────────────────────────────────────
+  const qRaw  = (url.searchParams.get("q") || "").trim();
+  const typeQ = normalize(url.searchParams.get("type") || "");    // e.g., "whey", "isolate", "vegan"
+  const sortQ = normalize(url.searchParams.get("sort") || "");    // "price" | "protein" | "calories"
   const limit = clampInt(url.searchParams.get("limit"), 500, 1, 500);
+
   const q = normalize(qRaw);
 
   // 1) Load catalog from KV (written by your Worker)
@@ -12,13 +17,22 @@ export async function onRequest({ request, env }) {
   const catalog = json ? safeParse(json) : [];
 
   // (Optional) Seed / merge a small curated list to ensure popular brands exist.
-  // Toggle this to true if you want to guarantee these entries are searchable.
   const MERGE_CURATED = false;
   if (MERGE_CURATED) mergeCurated(catalog);
 
+  // If no query, we still want to support type filter + sort
   if (!q) {
-    // Return all when no query given
-    return jsonResponse({ results: catalog.slice(0, limit) });
+    let results = catalog.slice();
+
+    // Apply type filter if provided
+    if (typeQ) {
+      results = results.filter(p => normalize(p.type || "").includes(typeQ));
+    }
+
+    // Apply sorting if requested
+    results = applySorting(results, sortQ);
+
+    return jsonResponse({ results: results.slice(0, limit) });
   }
 
   // 2) Alias expansion for common abbreviations
@@ -34,7 +48,6 @@ export async function onRequest({ request, env }) {
       type: normalize(String(p.type || "")),
     };
 
-    // token OR matching
     let score = 0;
     for (const t of tokens) {
       if (hay.includes(t)) score += 2;               // any field contains token
@@ -53,9 +66,10 @@ export async function onRequest({ request, env }) {
   });
 
   // 4) Primary results: score > 0
-  let results = scored.filter(x => x.s > 0)
-                      .sort((a,b) => b.s - a.s)
-                      .map(x => x.p);
+  let results = scored
+    .filter(x => x.s > 0)
+    .sort((a, b) => b.s - a.s)
+    .map(x => x.p);
 
   // 5) Fallback: if nothing matched, try very forgiving brand/product substring
   if (results.length === 0) {
@@ -67,7 +81,13 @@ export async function onRequest({ request, env }) {
     results = loose;
   }
 
-  // 6) Limit + return
+  // 6) Apply type filter + sorting even with a query
+  if (typeQ) {
+    results = results.filter(p => normalize(p.type || "").includes(typeQ));
+  }
+  results = applySorting(results, sortQ);
+
+  // 7) Limit + return
   return jsonResponse({ results: results.slice(0, limit) });
 }
 
@@ -133,4 +153,41 @@ function mergeCurated(list) {
   const key = (x) => `${normalize(x.brand)}|${normalize(x.product)}`;
   const seen = new Set(list.map(x => key(x)));
   for (const c of curated) if (!seen.has(key(c))) list.push(c);
+}
+
+// Sorting helper for "price" | "protein" | "calories"
+function applySorting(items, sortQ) {
+  const arr = items.slice();
+  if (!sortQ) return arr;
+
+  const val = (x, k) => {
+    const v = x?.[k];
+    return (v == null || Number.isNaN(Number(v))) ? null : Number(v);
+  };
+
+  if (sortQ === "price") {
+    // Lowest price first (nulls last)
+    arr.sort((a, b) => compareNumericAsc(val(a, "pricePerKg"), val(b, "pricePerKg")));
+  } else if (sortQ === "protein") {
+    // Highest protein first (nulls last)
+    arr.sort((a, b) => compareNumericDesc(val(a, "proteinPer100g"), val(b, "proteinPer100g")));
+  } else if (sortQ === "calories") {
+    // Lowest calories first (nulls last)
+    arr.sort((a, b) => compareNumericAsc(val(a, "caloriesPer100g"), val(b, "caloriesPer100g")));
+  }
+  return arr;
+}
+
+function compareNumericAsc(a, b) {
+  if (a == null && b == null) return 0;
+  if (a == null) return 1;   // nulls last
+  if (b == null) return -1;
+  return a - b;
+}
+
+function compareNumericDesc(a, b) {
+  if (a == null && b == null) return 0;
+  if (a == null) return 1;   // nulls last
+  if (b == null) return -1;
+  return b - a;
 }

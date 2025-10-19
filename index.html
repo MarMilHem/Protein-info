@@ -4,242 +4,353 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Protein Info</title>
-
   <style>
-  :root {
-    --page-max: 1100px;
-  }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f7f9fc;
+      color: #222;
+      margin: 0;
+      padding: 2rem;
+      text-align: center;
+    }
+    h1 { color: #0059ff; margin-bottom: 1rem; }
+    h2 { margin: 1.5rem 0 .75rem; }
+    .btn {
+      background: #eee;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .btn:hover { background: #ddd; }
+    .btn-primary {
+      background: #0059ff;
+      color: white;
+      border-color: #0059ff;
+    }
+    .btn-primary:hover { background: #0045d0; }
 
-  body {
-    font-family: system-ui, sans-serif;
-    background: #f7f9fc;
-    color: #222;
-    margin: 0;
-  }
+    table.compare {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: .95rem;
+    }
+    table.compare th,
+    table.compare td {
+      padding: .5rem;
+      border-bottom: 1px solid #ddd;
+    }
+    table.compare th.num,
+    table.compare td.num {
+      text-align: right;
+    }
 
-  .page {
-    max-width: var(--page-max);
-    margin: 0 auto;
-    padding: 2rem 1.25rem 3rem;
-  }
+    .chip {
+      display:inline-block;
+      background:#e5eaff;
+      color:#0059ff;
+      border-radius:999px;
+      padding:0 8px;
+      font-size:.8rem;
+      margin-left:4px;
+    }
 
-  /* Centered title box */
-  .hero {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    margin-bottom: 1.5rem;
-  }
+    footer {
+      margin-top: 3rem;
+      font-size: 0.9rem;
+      color: #777;
+    }
 
-  .title-box {
-    background: #e6f3ff;
-    border-radius: 20px;
-    padding: 2rem 3rem;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-    display: inline-block;
-    margin-bottom: 1rem;
-  }
-
-  h1 {
-    margin: 0;
-    font-size: 2.5rem;
-    color: #0059ff;
-  }
-
-  p.lead,
-  p.note {
-    max-width: 720px;
-    margin: 0.75rem auto;
-    line-height: 1.6;
-    color: #333;
-    text-align: center;
-  }
-
-  /* Search bar */
-  .search-bar {
-    margin: 2rem auto 0;
-    display: flex;
-    justify-content: center;
-    gap: 0.5rem;
-  }
-
-  .search-bar input {
-    padding: 0.75rem 1rem;
-    font-size: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 999px;
-    width: 320px;
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    background: #fff;
-  }
-
-  .search-bar input:focus {
-    border-color: #0059ff;
-    box-shadow: 0 0 6px rgba(0, 89, 255, 0.3);
-  }
-
-  .search-bar button {
-    background-color: #0059ff;
-    color: white;
-    border: none;
-    border-radius: 999px;
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-
-  .search-bar button:hover {
-    background-color: #0040cc;
-  }
-
-  #brandResults {
-    max-width: 800px;
-    margin: 2rem auto;
-  }
-
-  footer {
-    margin-top: 3rem;
-    font-size: 0.9rem;
-    color: #777;
-    text-align: center;
-  }
-</style>
-
-
-  <!-- comparison table styles -->
-  <link rel="stylesheet" href="assets/css/compare.css" />
+    /* search bar + filters */
+    .search-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+    .search-bar input,
+    .search-bar select {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    .search-bar input { flex: 1; min-width: 220px; }
+    .result {
+      background:white;
+      padding:12px;
+      border-radius:8px;
+      margin-bottom:10px;
+      text-align:left;
+      box-shadow:0 1px 3px rgba(0,0,0,0.06);
+    }
+  </style>
 </head>
-
 <body>
-  <main class="page">
-    <header class="hero" aria-label="Intro">
-      <div class="title-box">
-        <h1>Welcome to Protein Info</h1>
-      </div>
-      <p class="lead">
-        Explore and compare protein brands — prices, macros, and nutritional profiles — all in one spot.
-      </p>
-      <p class="note">🚧 Under development — more features coming soon!</p>
-    </header>
+  <main>
+    <h1>Protein Info</h1>
+    <p>Explore and compare different protein brands — their macros, price, and quality.</p>
 
-    <!-- 🔍 Search Bar -->
-    <form id="brandSearchForm" class="search-bar" action="/search" method="get">
+    <!-- 🔍 Unified Search + Filters -->
+    <form id="brandSearchForm" class="search-bar">
       <input type="text" name="q" placeholder="Search for a protein brand..." required />
-      <button type="submit">Search</button>
+      <select name="type" id="filterType">
+        <option value="">All types</option>
+        <option value="whey">Whey</option>
+        <option value="isolate">Isolate</option>
+        <option value="vegan">Vegan</option>
+      </select>
+      <select name="sort" id="sortOrder">
+        <option value="">Sort by</option>
+        <option value="price">Lowest price</option>
+        <option value="protein">Highest protein</option>
+        <option value="calories">Lowest calories</option>
+      </select>
+      <button type="submit" class="btn btn-primary">🔍 Search</button>
     </form>
 
-    <div id="brandResults" aria-live="polite"></div>
-    
-    <!-- 📋 Browse All Proteins -->
-<section id="browse-all" style="margin:28px 0;">
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
-    <h2 style="margin:0;">All available proteins</h2>
-    <div style="display:flex;gap:8px;align-items:center;">
-      <input id="allFilter" type="text" placeholder="Filter by brand/product…" 
-             style="padding:.5rem .75rem;border:1px solid #e5e7eb;border-radius:10px;min-width:240px;">
-      <select id="typeSelect" style="padding:.5rem .75rem;border:1px solid #e5e7eb;border-radius:10px;">
-        <option value="">All types</option>
-        <option>Whey</option><option>Isolate</option><option>Vegan</option><option>Casein</option><option>Egg</option>
-      </select>
-      <button id="reloadAllBtn" class="btn" type="button">Reload</button>
-    </div>
-  </div>
-  <div id="allList" style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;"></div>
-</section>
+    <div id="brandResults"></div>
 
-    <!-- 🔢 Comparison Table -->
+    <!-- 🔢 Comparison Table (serving-based) -->
     <section id="compare-section" style="margin:24px 0;">
-  <div id="compare-wrap">
-    <div id="compare-head">
-      <h2>Compare products <span class="chip" id="compare-count">0</span></h2>
-      <div class="toolbar">
-        <!-- kept simple on purpose; remove extra toggles -->
-        <button class="btn" id="clearBtn" type="button">Clear</button>
-        <button class="btn" id="shareBtn" type="button">Share link</button>
-        <button class="btn btn-primary" id="loadExamplesBtn" type="button">Load demo</button>
+      <div id="compare-wrap">
+        <div id="compare-head">
+          <h2>Compare products <span class="chip" id="compare-count">0</span></h2>
+          <div class="toolbar">
+            <button class="btn" id="clearBtn" type="button">Clear</button>
+            <button class="btn" id="shareBtn" type="button">Share link</button>
+            <button class="btn btn-primary" id="loadExamplesBtn" type="button">Load demo</button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="compare" id="compareTable" aria-label="Protein comparison table">
+            <thead>
+              <tr>
+                <th data-key="brand">Brand</th>
+                <th data-key="product">Product</th>
+                <th class="num" data-key="servingSizeG">Serving (g)</th>
+                <th class="num" data-key="pricePerServing">Price / serving</th>
+                <th class="num" data-key="proteinPerServing">Protein / serving</th>
+                <th class="num" data-key="caloriesPerServing">Calories / serving</th>
+                <th class="num" data-key="carbsPerServing">Carbs / serving</th>
+                <th class="num" data-key="fatPerServing">Fat / serving</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="compareBody"></tbody>
+          </table>
+        </div>
+
+        <div id="compare-empty">No items yet. Use your search results or the list above to “Add to compare”.</div>
       </div>
-    </div>
-
-    <div class="table-wrap">
-      <table class="compare" id="compareTable" aria-label="Protein comparison table">
-        <thead>
-          <tr>
-            <th data-key="brand">Brand</th>
-            <th data-key="product">Product</th>
-            <th class="num" data-key="servingSizeG">Serving (g)</th>
-            <th class="num" data-key="pricePerServing">Price / serving</th>
-            <th class="num" data-key="proteinPerServing">Protein / serving</th>
-            <th class="num" data-key="caloriesPerServing">Calories / serving</th>
-            <th class="num" data-key="carbsPerServing">Carbs / serving</th>
-            <th class="num" data-key="fatPerServing">Fat / serving</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="compareBody"></tbody>
-      </table>
-    </div>
-
-    <div id="compare-empty">No items yet. Use your search results’ “Add to compare” to begin.</div>
-  </div>
-</section>
-
+    </section>
 
     <footer>&copy; 2025 Protein Info. All rights reserved.</footer>
   </main>
 
-  <!-- SEARCH LOGIC: fetches product data from /functions/search.js -->
-<script>
-  const formEl = document.getElementById('brandSearchForm');
-  const resultsEl = document.getElementById('brandResults');
-
-  formEl.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const query = formEl.q.value.trim();
-    resultsEl.textContent = "🔍 Searching...";
-
-    try {
-      const res = await fetch(`/search?q=${encodeURIComponent(query)}`);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Search failed");
-
-      const items = data.results || [];
-      if (!items.length) {
-        resultsEl.textContent = "No matching protein brands.";
-        return;
+  <!-- ✅ Helper: safely create IDs and forward to Compare.add -->
+  <script>
+    window.addToCompare = function(raw){
+      const item = { ...raw };
+      if (!item.id) {
+        const slug = s => String(s||"").toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)+/g,'');
+        item.id = [slug(item.brand), slug(item.product)].filter(Boolean).join('-') || 'item-' + Date.now();
       }
+      const num = v => (v===null||v===undefined||v==='') ? undefined : Number(v);
+      item.pricePerKg = num(item.pricePerKg);
+      item.servingSizeG = num(item.servingSizeG);
+      item.proteinPer100g = num(item.proteinPer100g);
+      item.caloriesPerServing = num(item.caloriesPerServing);
+      item.carbsPerServing = num(item.carbsPerServing);
+      item.fatPerServing = num(item.fatPerServing);
+      const tryAdd = () => (window.Compare?.add ? window.Compare.add(item) : setTimeout(tryAdd, 50));
+      tryAdd();
+    };
+  </script>
 
-      // Render results as simple brand cards
-      resultsEl.innerHTML = items.map(p => `
-        <article class="result">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-            <div>
-              <div style="font-weight:700;">${p.brand}</div>
-              <div>${p.product}</div>
-              <div style="font-size:.9rem;color:#666;">${p.type || ""}</div>
+  <!-- 🔎 Search + filter logic -->
+  <script>
+    const formEl = document.getElementById('brandSearchForm');
+    const resultsEl = document.getElementById('brandResults');
+
+    formEl.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const query = formEl.q.value.trim();
+      const type = formEl.type.value;
+      const sort = formEl.sort.value;
+
+      resultsEl.textContent = "🔍 Searching...";
+
+      try {
+        const params = new URLSearchParams({ q: query, type, sort });
+        const res = await fetch(`/search?${params.toString()}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Search failed");
+
+        let items = data.results || [];
+        if (!items.length) {
+          resultsEl.textContent = "No matching protein brands.";
+          return;
+        }
+
+        // client-side sort
+        if (sort === "price") items.sort((a,b)=>(a.pricePerKg??9999)-(b.pricePerKg??9999));
+        if (sort === "protein") items.sort((a,b)=>(b.proteinPer100g??0)-(a.proteinPer100g??0));
+        if (sort === "calories") items.sort((a,b)=>(a.caloriesPer100g??9999)-(b.caloriesPer100g??9999));
+
+        // client-side type filter
+        if (type) items = items.filter(p => (p.type||"").toLowerCase().includes(type.toLowerCase()));
+
+        resultsEl.innerHTML = items.map(p => `
+          <article class="result">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+              <div>
+                <div style="font-weight:700;">${p.brand}</div>
+                <div>${p.product}</div>
+                <div style="font-size:.9rem;color:#666;">${p.type || ""}</div>
+              </div>
+              <button class="btn" onclick='addToCompare(${JSON.stringify(p)})'>+ Add to compare</button>
             </div>
-            <button class="btn" style="padding:.5rem .8rem;border:1px solid #e5e7eb;border-radius:10px;cursor:pointer"
-              onclick='Compare.add(${JSON.stringify(p)})'>
-              + Add to compare
-            </button>
-          </div>
-          <div style="margin-top:.5rem;font-size:.9rem;color:#444;">
-            <strong>Serving:</strong> ${p.servingSizeG ?? "—"} g ·
-            <strong>Protein/100g:</strong> ${p.proteinPer100g ?? "—"} g ·
-            <strong>Price/kg:</strong> ${p.pricePerKg != null ? "€"+p.pricePerKg.toFixed(2) : "—"}
-          </div>
-        </article>
-      `).join('');
-    } catch (err) {
-      resultsEl.innerHTML = `<span style="color:red;">❌ ${err.message}</span>`;
+            <div style="margin-top:.5rem;font-size:.9rem;color:#444;">
+              <strong>Serving:</strong> ${p.servingSizeG ?? "—"} g ·
+              <strong>Protein/100g:</strong> ${p.proteinPer100g ?? "—"} g ·
+              <strong>Price/kg:</strong> ${p.pricePerKg!=null?"€"+Number(p.pricePerKg).toFixed(2):"—"}
+            </div>
+          </article>
+        `).join('');
+      } catch (err) {
+        resultsEl.innerHTML = `<span style="color:red;">❌ ${err.message}</span>`;
+      }
+    });
+  </script>
+
+  <!-- ⚙️ Compare module -->
+  <script>
+  (() => {
+    const STORAGE_KEY = 'protein_compare_items_v1';
+    const els = {
+      count: document.getElementById('compare-count'),
+      table: document.getElementById('compareTable'),
+      body:  document.getElementById('compareBody'),
+      empty: document.getElementById('compare-empty'),
+      clear: document.getElementById('clearBtn'),
+      share: document.getElementById('shareBtn'),
+      demo:  document.getElementById('loadExamplesBtn'),
+    };
+
+    const load = () => {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+      catch { return []; }
+    };
+    const save = (items) => localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+
+    const num = v => (v===null||v===undefined||v==='') ? undefined : Number(v);
+    const fmt = (v,d=1)=>(v==null||Number.isNaN(v))?'—':Number(v).toFixed(d);
+    const money = v=>(v==null||Number.isNaN(v))?'—':new Intl.NumberFormat(undefined,{style:'currency',currency:'EUR'}).format(Number(v));
+
+    function deriveServingFields(item){
+      const x={...item};
+      x.servingSizeG=num(x.servingSizeG);
+      x.pricePerServing=num(x.pricePerServing);
+      x.pricePerKg=num(x.pricePerKg);
+      x.proteinPerServing=num(x.proteinPerServing);
+      x.proteinPer100g=num(x.proteinPer100g);
+      x.caloriesPerServing=num(x.caloriesPerServing);
+      x.caloriesPer100g=num(x.caloriesPer100g);
+      x.carbsPerServing=num(x.carbsPerServing);
+      x.carbsPer100g=num(x.carbsPer100g);
+      x.fatPerServing=num(x.fatPerServing);
+      x.fatPer100g=num(x.fatPer100g);
+      if(x.servingSizeG){
+        if(x.pricePerServing==null&&x.pricePerKg!=null)x.pricePerServing=(x.pricePerKg*x.servingSizeG)/1000;
+        if(x.proteinPerServing==null&&x.proteinPer100g!=null)x.proteinPerServing=(x.proteinPer100g*x.servingSizeG)/100;
+        if(x.caloriesPerServing==null&&x.caloriesPer100g!=null)x.caloriesPerServing=(x.caloriesPer100g*x.servingSizeG)/100;
+        if(x.carbsPerServing==null&&x.carbsPer100g!=null)x.carbsPerServing=(x.carbsPer100g*x.servingSizeG)/100;
+        if(x.fatPerServing==null&&x.fatPer100g!=null)x.fatPerServing=(x.fatPer100g*x.servingSizeG)/100;
+      }
+      return x;
     }
-  });
-</script>
 
+    function render(){
+      const items=load();
+      els.count.textContent=String(items.length);
+      const has=items.length>0;
+      els.table.style.display=has?'table':'none';
+      els.empty.style.display=has?'none':'block';
+      if(!has){els.body.innerHTML='';return;}
+      els.body.innerHTML=items.map(i=>{
+        const it=deriveServingFields(i);
+        return `
+          <tr data-id="${it.id}">
+            <td>${it.brand??'—'}</td>
+            <td>${it.product??'—'}</td>
+            <td class="num">${fmt(it.servingSizeG,0)}</td>
+            <td class="num">${money(it.pricePerServing)}</td>
+            <td class="num">${fmt(it.proteinPerServing,1)}</td>
+            <td class="num">${fmt(it.caloriesPerServing,0)}</td>
+            <td class="num">${fmt(it.carbsPerServing,1)}</td>
+            <td class="num">${fmt(it.fatPerServing,1)}</td>
+            <td><button class="btn remove" data-id="${it.id}">Remove</button></td>
+          </tr>
+        `;
+      }).join('');
+    }
 
-  <!-- comparison logic -->
-  <script src="assets/js/compare.js" defer></script>
+    window.Compare={
+      add(raw){
+        const item=deriveServingFields(raw);
+        const items=load();
+        const idx=items.findIndex(x=>x.id===item.id);
+        if(idx>=0)items[idx]={...items[idx],...item}; else items.push(item);
+        save(items); render();
+      },
+      remove(id){ save(load().filter(x=>x.id!==id)); render(); },
+      clear(){ save([]); render(); },
+      getAll(){ return load(); },
+    };
+
+    document.addEventListener('click',e=>{
+      const btn=e.target.closest('.remove');
+      if(btn&&btn.dataset.id){e.preventDefault();window.Compare.remove(btn.dataset.id);}
+    });
+
+    els.clear?.addEventListener('click',()=>window.Compare.clear());
+    els.share?.addEventListener('click',async()=>{
+      const data=window.Compare.getAll();
+      const payload=btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+      const url=new URL(location.href); url.hash='cmp='+payload;
+      try{
+        await navigator.clipboard.writeText(url.toString());
+        els.share.textContent='Copied!';
+        setTimeout(()=>els.share.textContent='Share link',1200);
+      }catch{ prompt('Copy this link:',url.toString()); }
+    });
+
+    els.demo?.addEventListener('click',()=>{
+      const demo=[
+        {id:'esn-designer-vanilla',brand:'ESN',product:'Designer Whey (Vanilla)',servingSizeG:30,proteinPer100g:77,pricePerKg:24.99},
+        {id:'optimum-gold-standard',brand:'Optimum Nutrition',product:'Gold Standard Whey',servingSizeG:30,proteinPer100g:76,pricePerKg:28.90},
+        {id:'myprotein-impact',brand:'MyProtein',product:'Impact Whey',servingSizeG:25,proteinPer100g:79,pricePerKg:19.99},
+      ];
+      const items=load().concat(demo.filter(d=>!load().some(i=>i.id===d.id)));
+      save(items); render();
+    });
+
+    (function importFromHash(){
+      const m=location.hash.match(/(^|#|&)cmp=([^&]+)/);
+      if(!m)return render();
+      try{
+        const json=decodeURIComponent(escape(atob(m[2])));
+        const items=JSON.parse(json);
+        if(Array.isArray(items))save(items);
+      }catch{}
+      render();
+    })();
+  })();
+  </script>
 </body>
 </html>
