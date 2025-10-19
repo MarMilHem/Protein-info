@@ -24,7 +24,21 @@
     h1 { color: var(--brand); margin-bottom: .5rem; }
     h2 { margin: 1.5rem 0 .75rem; }
 
-    /* header badges (icons) */
+    /* ====== GEOMETRIC GRID BACKGROUND ====== */
+    body::before{
+      content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+      background:
+        linear-gradient(to right, rgba(0,0,0,.04) 1px, transparent 1px) 0 0 / 28px 28px,
+        linear-gradient(to bottom, rgba(0,0,0,.04) 1px, transparent 1px) 0 0 / 28px 28px;
+      mask: radial-gradient(1200px 800px at 50% 10%, #000 55%, transparent 100%);
+      animation: gridDrift 60s linear infinite;
+    }
+    @keyframes gridDrift {
+      from { background-position: 0 0, 0 0; }
+      to   { background-position: 200px 200px, 200px 200px; }
+    }
+
+    /* === icons / badges === */
     .badges{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap;margin:.25rem 0 1rem}
     .badge{display:inline-flex;align-items:center;gap:.5rem;background:var(--card);border:1px solid var(--ring);
       padding:.4rem .6rem;border-radius:999px;box-shadow:var(--shadow);font-weight:600}
@@ -46,7 +60,7 @@
     }
     .btn-primary:hover { background: var(--brand-600); }
 
-    /* search bar + filters (compact) */
+    /* search bar + filters */
     .search-bar {
       display: flex;
       flex-wrap: wrap;
@@ -63,7 +77,6 @@
       background: #fff;
       box-shadow: var(--shadow);
     }
-    /* keep it short on wide screens */
     .search-bar input { flex: 0 1 480px; min-width: 220px; max-width: 520px; }
 
     .result {
@@ -74,7 +87,6 @@
       text-align:left;
       box-shadow:0 6px 18px rgba(0,0,0,0.06);
     }
-    /* Results list scrolling */
     #brandResults {
       max-height: 480px;
       overflow-y: auto;
@@ -86,7 +98,7 @@
     #brandResults::-webkit-scrollbar-thumb { background: #c3c8d4; border-radius: 4px; }
     #brandResults::-webkit-scrollbar-thumb:hover { background: #9ea4b3; }
 
-    /* Compare table polish */
+    /* Compare table styling */
     .table-wrap{
       overflow:auto;
       background:linear-gradient(#fff,#fff) padding-box, linear-gradient(to right, transparent, transparent) border-box;
@@ -98,7 +110,6 @@
       width: 100%;
       border-collapse: separate;
       border-spacing: 0;
-      margin-top: 0;
       font-size: .95rem;
       min-width: 760px;
       text-align:left;
@@ -117,7 +128,6 @@
     .compare tbody tr:nth-child(odd){background:#fafafa}
     .compare tbody tr:hover{background:#f3f7ff}
 
-    /* protein cell visualization */
     .metric .bar{height:8px;border-radius:6px;background:#e5e7eb;position:relative;overflow:hidden;margin-top:4px}
     .metric .bar > i{position:absolute;inset:0;width:0%;display:block;background:linear-gradient(90deg,#93c5fd,#60a5fa)}
     td.protein.is-best{background:var(--best)!important;box-shadow:inset 0 0 0 2px var(--best-ring)}
@@ -139,13 +149,11 @@
       color: #777;
     }
 
-    /* header row corners */
     .compare thead th:first-child{border-top-left-radius:14px}
     .compare thead th:last-child{border-top-right-radius:14px}
     .compare tbody tr:last-child td:first-child{border-bottom-left-radius:14px}
     .compare tbody tr:last-child td:last-child{border-bottom-right-radius:14px}
 
-    /* layout bits */
     #compare-head{display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
     #compare-empty{color:var(--muted);margin:.75rem 0}
   </style>
@@ -154,17 +162,14 @@
   <main>
     <h1>Protein Info</h1>
 
-    <!-- tasteful icons under title -->
     <div class="badges">
       <span class="badge" title="Protein">
-        <!-- scoop -->
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M4 12a6 6 0 1 1 12 0v2.2l3.6 1.2a2 2 0 1 1-.64 3.9L16 18.5V12A8 8 0 1 0 0 12a1 1 0 0 0 2 0 6 6 0 0 1 2-4z"/>
         </svg>
         Protein
       </span>
       <span class="badge" title="Dietary">
-        <!-- leaf/check -->
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M20.5 3.5c-6.4-.7-10.9 1.6-13.8 4.5C3.2 11.5 2 15.1 2 18.3c0 .9.8 1.7 1.7 1.7 3.2 0 6.8-1.2 10.3-4.7 2.9-2.9 5.2-7.4 4.5-13.8zM9.5 14l-2-2 1.4-1.4 1 1 4-4L15.3 9l-4.9 5z"/>
         </svg>
@@ -175,15 +180,15 @@
     <p>Explore and compare different protein brands — their macros, price, and quality.</p>
 
     <!-- 🔍 Unified Search + Filters -->
-    <form id="brandSearchForm" class="search-bar" role="search" aria-label="Search protein brands">
+    <form id="brandSearchForm" class="search-bar">
       <input type="text" name="q" placeholder="Search for a protein brand..." required />
-      <select name="type" id="filterType" aria-label="Filter by type">
+      <select name="type" id="filterType">
         <option value="">All types</option>
         <option value="whey">Whey</option>
         <option value="isolate">Isolate</option>
         <option value="vegan">Vegan</option>
       </select>
-      <select name="sort" id="sortOrder" aria-label="Sort order">
+      <select name="sort" id="sortOrder">
         <option value="">Sort by</option>
         <option value="price">Lowest price</option>
         <option value="protein">Highest protein</option>
@@ -194,7 +199,7 @@
 
     <div id="brandResults"></div>
 
-    <!-- 🔢 Comparison Table (serving-based) -->
+    <!-- 🔢 Comparison Table -->
     <section id="compare-section" style="margin:24px 0;">
       <div id="compare-wrap">
         <div id="compare-head">
@@ -207,17 +212,13 @@
         </div>
 
         <div class="table-wrap">
-          <table class="compare" id="compareTable" aria-label="Protein comparison table">
+          <table class="compare" id="compareTable">
             <thead>
               <tr>
-                <th data-key="brand">Brand</th>
-                <th data-key="product">Product</th>
-                <th class="num" data-key="servingSizeG">Serving (g)</th>
-                <th class="num" data-key="pricePerServing">Price / serving</th>
-                <th class="num" data-key="proteinPerServing">Protein / serving</th>
-                <th class="num" data-key="caloriesPerServing">Calories / serving</th>
-                <th class="num" data-key="carbsPerServing">Carbs / serving</th>
-                <th class="num" data-key="fatPerServing">Fat / serving</th>
+                <th>Brand</th><th>Product</th>
+                <th class="num">Serving (g)</th><th class="num">Price / serving</th>
+                <th class="num">Protein / serving</th><th class="num">Calories / serving</th>
+                <th class="num">Carbs / serving</th><th class="num">Fat / serving</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -237,243 +238,6 @@
     <footer>&copy; 2025 Protein Info. All rights reserved.</footer>
   </main>
 
-  <!-- ✅ Helper: safely create IDs and forward to Compare.add -->
-  <script>
-    window.addToCompare = function(raw){
-      const item = { ...raw };
-      if (!item.id) {
-        const slug = s => String(s||"").toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)+/g,'');
-        item.id = [slug(item.brand), slug(item.product)].filter(Boolean).join('-') || 'item-' + Date.now();
-      }
-      const num = v => (v===null||v===undefined||v==='') ? undefined : Number(v);
-      item.pricePerKg = num(item.pricePerKg);
-      item.servingSizeG = num(item.servingSizeG);
-      item.proteinPer100g = num(item.proteinPer100g);
-      item.caloriesPerServing = num(item.caloriesPerServing);
-      item.carbsPerServing = num(item.carbsPerServing);
-      item.fatPerServing = num(item.fatPerServing);
-      const tryAdd = () => (window.Compare?.add ? window.Compare.add(item) : setTimeout(tryAdd, 50));
-      tryAdd();
-    };
-  </script>
-
-  <!-- 🔎 Search + filter logic -->
-  <script>
-    const formEl = document.getElementById('brandSearchForm');
-    const resultsEl = document.getElementById('brandResults');
-
-    formEl.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const query = formEl.q.value.trim();
-      const type = formEl.type.value;
-      const sort = formEl.sort.value;
-
-      resultsEl.textContent = "🔍 Searching...";
-
-      try {
-        const params = new URLSearchParams({ q: query, type, sort });
-        const res = await fetch(`/search?${params.toString()}`);
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Search failed");
-
-        let items = data.results || [];
-        if (!items.length) {
-          resultsEl.textContent = "No matching protein brands.";
-          return;
-        }
-
-        // client-side sort
-        if (sort === "price") items.sort((a,b)=>(a.pricePerKg??9999)-(b.pricePerKg??9999));
-        if (sort === "protein") items.sort((a,b)=>(b.proteinPer100g??0)-(a.proteinPer100g??0));
-        if (sort === "calories") items.sort((a,b)=>(a.caloriesPer100g??9999)-(b.caloriesPer100g??9999));
-
-        // client-side type filter
-        if (type) items = items.filter(p => (p.type||"").toLowerCase().includes(type.toLowerCase()));
-
-        resultsEl.innerHTML = items.map(p => `
-          <article class="result">
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-              <div>
-                <div style="font-weight:700;">${p.brand}</div>
-                <div>${p.product}</div>
-                <div style="font-size:.9rem;color:#666;">${p.type || ""}</div>
-              </div>
-              <button class="btn" onclick='addToCompare(${JSON.stringify(p)})'>+ Add to compare</button>
-            </div>
-            <div style="margin-top:.5rem;font-size:.9rem;color:#444;">
-              <strong>Serving:</strong> ${p.servingSizeG ?? "—"} g ·
-              <strong>Protein/100g:</strong> ${p.proteinPer100g ?? "—"} g ·
-              <strong>Price/kg:</strong> ${p.pricePerKg!=null?"€"+Number(p.pricePerKg).toFixed(2):"—"}
-            </div>
-          </article>
-        `).join('');
-      } catch (err) {
-        resultsEl.innerHTML = `<span style="color:red;">❌ ${err.message}</span>`;
-      }
-    });
-  </script>
-
-  <!-- ⚙️ Compare module + visualization/highlight -->
-  <script>
-  (() => {
-    const STORAGE_KEY = 'protein_compare_items_v1';
-    const els = {
-      count: document.getElementById('compare-count'),
-      table: document.getElementById('compareTable'),
-      body:  document.getElementById('compareBody'),
-      empty: document.getElementById('compare-empty'),
-      clear: document.getElementById('clearBtn'),
-      share: document.getElementById('shareBtn'),
-      demo:  document.getElementById('loadExamplesBtn'),
-    };
-
-    const load = () => {
-      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
-      catch { return []; }
-    };
-    const save = (items) => localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-
-    const num = v => (v===null||v===undefined||v==='') ? undefined : Number(v);
-    const fmt = (v,d=1)=>(v==null||Number.isNaN(v))?'—':Number(v).toFixed(d);
-    const money = v=>(v==null||Number.isNaN(v))?'—':new Intl.NumberFormat(undefined,{style:'currency',currency:'EUR'}).format(Number(v));
-
-    function deriveServingFields(item){
-      const x={...item};
-      x.servingSizeG=num(x.servingSizeG);
-      x.pricePerServing=num(x.pricePerServing);
-      x.pricePerKg=num(x.pricePerKg);
-      x.proteinPerServing=num(x.proteinPerServing);
-      x.proteinPer100g=num(x.proteinPer100g);
-      x.caloriesPerServing=num(x.caloriesPerServing);
-      x.caloriesPer100g=num(x.caloriesPer100g);
-      x.carbsPerServing=num(x.carbsPerServing);
-      x.carbsPer100g=num(x.carbsPer100g);
-      x.fatPerServing=num(x.fatPerServing);
-      x.fatPer100g=num(x.fatPer100g);
-      if(x.servingSizeG){
-        if(x.pricePerServing==null&&x.pricePerKg!=null)x.pricePerServing=(x.pricePerKg*x.servingSizeG)/1000;
-        if(x.proteinPerServing==null&&x.proteinPer100g!=null)x.proteinPerServing=(x.proteinPer100g*x.servingSizeG)/100;
-        if(x.caloriesPerServing==null&&x.caloriesPer100g!=null)x.caloriesPerServing=(x.caloriesPer100g*x.servingSizeG)/100;
-        if(x.carbsPerServing==null&&x.carbsPer100g!=null)x.carbsPerServing=(x.carbsPer100g*x.servingSizeG)/100;
-        if(x.fatPerServing==null&&x.fatPer100g!=null)x.fatPerServing=(x.fatPer100g*x.servingSizeG)/100;
-      }
-      return x;
-    }
-
-    function visualizeProteinCells(){
-      const table = els.table;
-      const proteinCells = Array.from(table.querySelectorAll('tbody tr td:nth-child(5)')); // 5th column = Protein/serving
-      const values = proteinCells.map(td => {
-        const v = Number(String(td.dataset.protein || td.textContent).replace(/[^\d.]/g,''));
-        return Number.isFinite(v) ? v : 0;
-      });
-      const max = Math.max(0, ...values);
-      // build bars + mark best
-      proteinCells.forEach((td, i) => {
-        const v = values[i];
-        td.classList.add('metric','protein');
-        // keep existing text
-        const valText = td.textContent.trim();
-        td.innerHTML = '';
-        const strong = document.createElement('div');
-        strong.style.fontWeight = '600';
-        strong.textContent = valText;
-        const bar = document.createElement('div'); bar.className='bar';
-        const fill = document.createElement('i'); fill.style.width = (max? (v/max)*100 : 0) + '%';
-        bar.appendChild(fill);
-        td.appendChild(strong);
-        td.appendChild(bar);
-      });
-      // highlight best (first if tie)
-      const bestIndex = values.indexOf(max);
-      if(bestIndex>=0 && proteinCells[bestIndex]){
-        const best = proteinCells[bestIndex];
-        best.classList.add('is-best');
-        const tag = document.createElement('span');
-        tag.className='best-tag';
-        tag.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" style="fill:currentColor"><path d="M12 2l2.9 6 6.1.5-4.6 4 1.4 6-5.8-3.3L6.2 19l1.4-6-4.6-4 6.1-.5z"/></svg> BEST`;
-        best.appendChild(tag);
-      }
-    }
-
-    function render(){
-      const items=load();
-      els.count.textContent=String(items.length);
-      const has=items.length>0;
-      els.table.style.display=has?'table':'none';
-      els.empty.style.display=has?'none':'block';
-      if(!has){els.body.innerHTML='';return;}
-      els.body.innerHTML=items.map(i=>{
-        const it=deriveServingFields(i);
-        return `
-          <tr data-id="${it.id}">
-            <td>${it.brand??'—'}</td>
-            <td>${it.product??'—'}</td>
-            <td class="num">${fmt(it.servingSizeG,0)}</td>
-            <td class="num">${money(it.pricePerServing)}</td>
-            <td class="num" data-protein="${it.proteinPerServing ?? ''}">${fmt(it.proteinPerServing,1)}</td>
-            <td class="num">${fmt(it.caloriesPerServing,0)}</td>
-            <td class="num">${fmt(it.carbsPerServing,1)}</td>
-            <td class="num">${fmt(it.fatPerServing,1)}</td>
-            <td><button class="btn remove" data-id="${it.id}">Remove</button></td>
-          </tr>
-        `;
-      }).join('');
-      // after rows exist, apply visuals & highlight
-      visualizeProteinCells();
-    }
-
-    window.Compare={
-      add(raw){
-        const item=deriveServingFields(raw);
-        const items=load();
-        const idx=items.findIndex(x=>x.id===item.id);
-        if(idx>=0)items[idx]={...items[idx],...item}; else items.push(item);
-        save(items); render();
-      },
-      remove(id){ save(load().filter(x=>x.id!==id)); render(); },
-      clear(){ save([]); render(); },
-      getAll(){ return load(); },
-    };
-
-    document.addEventListener('click',e=>{
-      const btn=e.target.closest('.remove');
-      if(btn&&btn.dataset.id){e.preventDefault();window.Compare.remove(btn.dataset.id);}
-    });
-
-    els.clear?.addEventListener('click',()=>window.Compare.clear());
-    els.share?.addEventListener('click',async()=>{
-      const data=window.Compare.getAll();
-      const payload=btoa(unescape(encodeURIComponent(JSON.stringify(data))));
-      const url=new URL(location.href); url.hash='cmp='+payload;
-      try{
-        await navigator.clipboard.writeText(url.toString());
-        els.share.textContent='Copied!';
-        setTimeout(()=>els.share.textContent='Share link',1200);
-      }catch{ prompt('Copy this link:',url.toString()); }
-    });
-
-    els.demo?.addEventListener('click',()=>{
-      const demo=[
-        {id:'esn-designer-vanilla',brand:'ESN',product:'Designer Whey (Vanilla)',servingSizeG:30,proteinPer100g:77,pricePerKg:24.99},
-        {id:'optimum-gold-standard',brand:'Optimum Nutrition',product:'Gold Standard Whey',servingSizeG:30,proteinPer100g:76,pricePerKg:28.90},
-        {id:'myprotein-impact',brand:'MyProtein',product:'Impact Whey',servingSizeG:25,proteinPer100g:79,pricePerKg:19.99},
-      ];
-      const items=load().concat(demo.filter(d=>!load().some(i=>i.id===d.id)));
-      save(items); render();
-    });
-
-    (function importFromHash(){
-      const m=location.hash.match(/(^|#|&)cmp=([^&]+)/);
-      if(!m)return render();
-      try{
-        const json=decodeURIComponent(escape(atob(m[2])));
-        const items=JSON.parse(json);
-        if(Array.isArray(items))save(items);
-      }catch{}
-      render();
-    })();
-  })();
-  </script>
+  <!-- ✅ Keep your JS scripts (search + compare) below this as you had before -->
 </body>
 </html>
