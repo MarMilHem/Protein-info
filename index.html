@@ -79,6 +79,27 @@
     }
     .search-bar input { flex: 0 1 480px; min-width: 220px; max-width: 520px; }
 
+    /* 🔽 Autocomplete (type-ahead) */
+    .combo { position: relative; flex: 0 1 480px; min-width: 220px; max-width: 520px; }
+    .combo[aria-expanded="true"] input {
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+    .suggestions {
+      position: absolute; z-index: 20; top: 100%; left: 0; right: 0;
+      background: #fff; border: 1px solid var(--ring); border-top: none;
+      border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.08);
+      max-height: 320px; overflow: auto; margin: 0; padding: 0; list-style: none; display: none;
+    }
+    .combo[aria-expanded="true"] .suggestions { display: block; }
+    .suggestions li[role="option"] {
+      padding: 10px 12px; cursor: pointer; display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center;
+    }
+    .suggestions li small { color: var(--muted); }
+    .suggestions li .tag { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: #f3f4f6; }
+    .suggestions li[aria-selected="true"], .suggestions li:hover { background: #f7f9fc; }
+
     .result {
       background:white;
       padding:12px;
@@ -180,9 +201,25 @@
 
     <p>Explore and compare different protein brands — their macros, price, and quality.</p>
 
-    <!-- 🔍 Unified Search + Filters -->
+    <!-- 🔍 Unified Search + Filters (with autocomplete) -->
     <form id="brandSearchForm" class="search-bar" role="search" aria-label="Search protein brands">
-      <input type="text" name="q" placeholder="Search for a protein brand..." required />
+      <div class="combo" aria-expanded="false">
+        <input
+          id="query"
+          type="text"
+          name="q"
+          placeholder="Search for a protein brand..."
+          autocomplete="off"
+          required
+          role="combobox"
+          aria-autocomplete="list"
+          aria-owns="suggestions"
+          aria-controls="suggestions"
+          aria-activedescendant=""
+        />
+        <ul id="suggestions" class="suggestions" role="listbox"></ul>
+      </div>
+
       <select name="type" id="filterType" aria-label="Filter by type">
         <option value="">All types</option>
         <option value="whey">Whey</option>
@@ -263,10 +300,120 @@
     };
   </script>
 
-  <!-- 🔎 Search + filter logic -->
+  <!-- 🔎 Search + filter logic + ⚡ autocomplete -->
   <script>
     const formEl = document.getElementById('brandSearchForm');
     const resultsEl = document.getElementById('brandResults');
+
+    // ------- Autocomplete (type-ahead) -------
+    (function initAutocomplete(){
+      const combo = formEl.querySelector('.combo');
+      const input = document.getElementById('query');
+      const list  = document.getElementById('suggestions');
+
+      let debounceTimer=null, activeIndex=-1, items=[], aborter=null;
+      const ENDPOINT = "/search";
+
+      function setExpanded(open){
+        combo.setAttribute("aria-expanded", open ? "true" : "false");
+        if (!open) {
+          input.setAttribute("aria-activedescendant", "");
+          activeIndex = -1;
+        }
+      }
+      function renderList(data){
+        items = data;
+        activeIndex = -1;
+        if (!items.length){ list.innerHTML=""; setExpanded(false); return; }
+        list.innerHTML = items.map((p,i)=>{
+          const id="opt-"+i;
+          const brand = p.brand || "—";
+          const product = p.product || p.name || "—";
+          const type = p.type || "";
+          const origin = p.origin ? ` · ${p.origin}` : "";
+          const protein = (p.proteinPer100g != null) ? ` · ${p.proteinPer100g}g/100g` : "";
+          const tag = type ? `<span class="tag">${type}</span>` : "";
+          return `
+            <li id="${id}" role="option" aria-selected="false" data-index="${i}">
+              <div><strong>${brand}</strong> — ${product}<small>${origin}${protein}</small></div>
+              ${tag}
+            </li>`;
+        }).join("");
+        setExpanded(true);
+      }
+      function highlight(index){
+        const options=[...list.querySelectorAll('[role="option"]')];
+        options.forEach((el,i)=>{
+          const sel=i===index;
+          el.setAttribute("aria-selected", sel ? "true" : "false");
+          if(sel){ input.setAttribute("aria-activedescendant", el.id); el.scrollIntoView({block:"nearest"}); }
+        });
+      }
+      async function fetchSuggestions(q){
+        if (aborter) aborter.abort();
+        aborter = new AbortController();
+        const url = new URL(ENDPOINT, location.origin);
+        url.searchParams.set("q", q);
+        url.searchParams.set("limit", "10");
+        url.searchParams.set("external", "1"); // richer suggestions
+        try{
+          const res = await fetch(url.toString(), { signal: aborter.signal });
+          const json = await res.json();
+          const results = Array.isArray(json.results) ? json.results : [];
+          renderList(results);
+        }catch(e){
+          if(e.name==="AbortError") return;
+          renderList([]);
+        }
+      }
+      function onInput(){
+        const q = input.value.trim();
+        if (!q){ renderList([]); return; }
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(()=>{
+          // (optional) require 2+ chars:
+          // if(q.length<2){ renderList([]); return; }
+          fetchSuggestions(q);
+        }, 120);
+      }
+      function choose(index){
+        if (index<0 || index>=items.length) return;
+        const it = items[index];
+        const q = [it.brand, it.product].filter(Boolean).join(" ");
+        input.value = q || input.value;
+        renderList([]);
+        formEl.requestSubmit();
+      }
+
+      input.addEventListener("input", onInput);
+      input.addEventListener("keydown", (e)=>{
+        const open = combo.getAttribute("aria-expanded")==="true";
+        if(e.key==="ArrowDown"){
+          e.preventDefault();
+          if(!open && items.length) setExpanded(true);
+          activeIndex = Math.min(items.length-1, activeIndex+1);
+          highlight(activeIndex);
+        }else if(e.key==="ArrowUp"){
+          e.preventDefault();
+          activeIndex = Math.max(0, activeIndex-1);
+          highlight(activeIndex);
+        }else if(e.key==="Enter"){
+          if(open && activeIndex>=0){ e.preventDefault(); choose(activeIndex); }
+        }else if(e.key==="Escape"){
+          setExpanded(false);
+        }
+      });
+      list.addEventListener("mousedown", (e)=>{
+        const li = e.target.closest('[role="option"]');
+        if(!li) return;
+        e.preventDefault();
+        choose(Number(li.dataset.index));
+      });
+      document.addEventListener("click", (e)=>{
+        if(!combo.contains(e.target)) setExpanded(false);
+      });
+    })();
+    // ------- /Autocomplete -------
 
     formEl.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -274,10 +421,11 @@
       const type = formEl.type.value;
       const sort = formEl.sort.value;
 
+      if (!query) return;
       resultsEl.textContent = "🔍 Searching...";
 
       try {
-        const params = new URLSearchParams({ q: query, type, sort });
+        const params = new URLSearchParams({ q: query, type, sort, external: "1" }); // include external blend
         const res = await fetch(`/search?${params.toString()}`);
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Search failed");
@@ -300,8 +448,8 @@
           <article class="result">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
               <div>
-                <div style="font-weight:700;">${p.brand}</div>
-                <div>${p.product}</div>
+                <div style="font-weight:700;">${p.brand ?? ""}</div>
+                <div>${p.product ?? ""}</div>
                 <div style="font-size:.9rem;color:#666;">${p.type || ""}</div>
               </div>
               <button class="btn" onclick='addToCompare(${JSON.stringify(p)})'>+ Add to compare</button>
@@ -309,7 +457,8 @@
             <div style="margin-top:.5rem;font-size:.9rem;color:#444;">
               <strong>Serving:</strong> ${p.servingSizeG ?? "—"} g ·
               <strong>Protein/100g:</strong> ${p.proteinPer100g ?? "—"} g ·
-              <strong>Price/kg:</strong> ${p.pricePerKg!=null?"€"+Number(p.pricePerKg).toFixed(2):"—"}
+              <strong>Price/kg:</strong> ${p.pricePerKg!=null?"€"+Number(p.pricePerKg).toFixed(2):"—"} ·
+              <strong>Produced In:</strong> ${p.origin || "Unknown"}
             </div>
           </article>
         `).join('');
@@ -445,8 +594,8 @@
       if(btn&&btn.dataset.id){e.preventDefault();window.Compare.remove(btn.dataset.id);}
     });
 
-    els.clear?.addEventListener('click',()=>window.Compare.clear());
-    els.share?.addEventListener('click',async()=>{
+    document.getElementById('clearBtn')?.addEventListener('click',()=>window.Compare.clear());
+    document.getElementById('shareBtn')?.addEventListener('click',async()=>{
       const data=window.Compare.getAll();
       const payload=btoa(unescape(encodeURIComponent(JSON.stringify(data))));
       const url=new URL(location.href); url.hash='cmp='+payload;
@@ -457,14 +606,15 @@
       }catch{ prompt('Copy this link:',url.toString()); }
     });
 
-    els.demo?.addEventListener('click',()=>{
+    document.getElementById('loadExamplesBtn')?.addEventListener('click',()=>{
       const demo=[
         {id:'esn-designer-vanilla',brand:'ESN',product:'Designer Whey (Vanilla)',servingSizeG:30,proteinPer100g:77,pricePerKg:24.99},
         {id:'optimum-gold-standard',brand:'Optimum Nutrition',product:'Gold Standard Whey',servingSizeG:30,proteinPer100g:76,pricePerKg:28.90},
         {id:'myprotein-impact',brand:'MyProtein',product:'Impact Whey',servingSizeG:25,proteinPer100g:79,pricePerKg:19.99},
       ];
-      const items=load().concat(demo.filter(d=>!load().some(i=>i.id===d.id)));
-      save(items); render();
+      const cur=load();
+      const merged=cur.concat(demo.filter(d=>!cur.some(i=>i.id===d.id)));
+      save(merged); render();
     });
 
     (function importFromHash(){
