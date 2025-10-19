@@ -135,54 +135,40 @@
 
     <!-- 🔢 Comparison Table -->
     <section id="compare-section" style="margin:24px 0;">
-      <div id="compare-wrap">
-        <div id="compare-head">
-          <h2>Compare products <span class="chip" id="compare-count">0</span></h2>
-          <div class="toolbar">
-            <label class="toggle"><input type="checkbox" id="veganOnly"><span>Vegan only</span></label>
-            <label class="toggle">
-              <span class="hide-sm">Type</span>
-              <select id="typeFilter">
-                <option value="">All types</option>
-                <option>Whey</option><option>Isolate</option><option>Casein</option><option>Vegan</option><option>Egg</option>
-              </select>
-            </label>
-            <label class="toggle"><input type="checkbox" id="toggleExtended"><span>Show extended columns</span></label>
-            <button class="btn" id="clearBtn" type="button">Clear</button>
-            <button class="btn" id="shareBtn" type="button">Share link</button>
-            <button class="btn btn-primary" id="loadExamplesBtn" type="button">Load demo</button>
-          </div>
-        </div>
-
-        <div class="table-wrap">
-          <table class="compare" id="compareTable" aria-label="Protein comparison table">
-            <thead>
-              <tr>
-                <th data-key="brand">Brand</th>
-                <th data-key="product">Product</th>
-                <th class="hide-md" data-key="type">Type</th>
-                <th class="num" data-key="pricePerKg">Price / kg</th>
-                <th class="num hide-md" data-key="servingSizeG">Serving (g)</th>
-                <th class="num" data-key="pricePerServing">Price / serving</th>
-                <th class="num" data-key="proteinPer100g">Protein / 100g</th>
-                <th class="num" data-key="proteinPerServing">Protein / serving</th>
-                <th class="num hide-md ext" data-key="caloriesPerServing">Calories / serving</th>
-                <th class="num hide-md ext" data-key="carbsPerServing">Carbs / serving</th>
-                <th class="num hide-md ext" data-key="fatPerServing">Fat / serving</th>
-                <th class="hide-md ext" data-key="sweeteners">Sweeteners</th>
-                <th class="hide-md ext" data-key="allergens">Allergens</th>
-                <th class="hide-md ext" data-key="origin">Origin</th>
-                <th class="num hide-md ext" data-key="rating">Rating</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="compareBody"></tbody>
-          </table>
-        </div>
-
-        <div id="compare-empty">No items yet. Use your search results’ “Add to compare” to begin.</div>
+  <div id="compare-wrap">
+    <div id="compare-head">
+      <h2>Compare products <span class="chip" id="compare-count">0</span></h2>
+      <div class="toolbar">
+        <!-- kept simple on purpose; remove extra toggles -->
+        <button class="btn" id="clearBtn" type="button">Clear</button>
+        <button class="btn" id="shareBtn" type="button">Share link</button>
+        <button class="btn btn-primary" id="loadExamplesBtn" type="button">Load demo</button>
       </div>
-    </section>
+    </div>
+
+    <div class="table-wrap">
+      <table class="compare" id="compareTable" aria-label="Protein comparison table">
+        <thead>
+          <tr>
+            <th data-key="brand">Brand</th>
+            <th data-key="product">Product</th>
+            <th class="num" data-key="servingSizeG">Serving (g)</th>
+            <th class="num" data-key="pricePerServing">Price / serving</th>
+            <th class="num" data-key="proteinPerServing">Protein / serving</th>
+            <th class="num" data-key="caloriesPerServing">Calories / serving</th>
+            <th class="num" data-key="carbsPerServing">Carbs / serving</th>
+            <th class="num" data-key="fatPerServing">Fat / serving</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="compareBody"></tbody>
+      </table>
+    </div>
+
+    <div id="compare-empty">No items yet. Use your search results’ “Add to compare” to begin.</div>
+  </div>
+</section>
+
 
     <footer>&copy; 2025 Protein Info. All rights reserved.</footer>
   </main>

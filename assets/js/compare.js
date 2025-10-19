@@ -60,40 +60,52 @@
 
   // Render
   function render(){
-    const body = bodyEl(); const count = countEl(); const empty = emptyEl();
-    const visible = applyFilters([...state.items]); applySort(visible);
-    const metrics = computeHighlights(visible);
+  const body = document.getElementById('compareBody');
+  const count = document.getElementById('compare-count');
+  const empty = document.getElementById('compare-empty');
 
-    body.innerHTML = '';
-    visible.forEach(p=>{
-      const tr = document.createElement('tr');
-      tr.appendChild(tdText(p.brand));
-      tr.appendChild(tdText(p.product));
-      tr.appendChild(tdText(p.type, 'hide-md'));
+  const visible = [...state.items]; // no filters anymore
+  applySort(visible);
 
-      tr.appendChild(tdNum(formatMoney(p.pricePerKg), metrics.bestPriceKg === p.pricePerKg ? 'best' : ''));
-      tr.appendChild(tdNum(p.servingSizeG ?? '—', 'hide-md'));
-      tr.appendChild(tdNum(formatMoney(p.pricePerServing)));
+  const metrics = computeHighlights(visible);
 
-      tr.appendChild(tdNum(p.proteinPer100g ?? '—', metrics.bestProtein100 === p.proteinPer100g ? 'ok':''));
-      tr.appendChild(tdNum(p.proteinPerServing ?? '—'));
+  body.innerHTML = '';
+  visible.forEach(p=>{
+    const tr = document.createElement('tr');
 
-      tr.appendChild(tdNum(p.caloriesPerServing ?? '—', 'hide-md ext'));
-      tr.appendChild(tdNum(p.carbsPerServing ?? '—', clsLow(metrics.minCarbs, p.carbsPerServing) + ' hide-md ext'));
-      tr.appendChild(tdNum(p.fatPerServing ?? '—', clsLow(metrics.minFat, p.fatPerServing) + ' hide-md ext'));
+    tr.appendChild(tdText(p.brand));
+    tr.appendChild(tdText(p.product));
 
-      tr.appendChild(tdText(p.sweeteners ?? '—', 'hide-md ext'));
-      tr.appendChild(tdText(p.allergens ?? '—', 'hide-md ext'));
-      tr.appendChild(tdText(p.origin ?? '—', 'hide-md ext'));
-      tr.appendChild(tdNum(p.rating ?? '—', 'hide-md ext'));
+    tr.appendChild(tdNum(p.servingSizeG ?? '—'));
 
-      const actions = document.createElement('td');
-      const rm = document.createElement('button'); rm.className='btn'; rm.textContent='Remove';
-      rm.onclick = ()=> window.Compare.remove(p.id);
-      actions.appendChild(rm); tr.appendChild(actions);
+    tr.appendChild(tdNum(formatMoney(p.pricePerServing),
+      metrics.bestPricePerServing === p.pricePerServing ? 'best' : ''));
 
-      body.appendChild(tr);
-    });
+    tr.appendChild(tdNum(p.proteinPerServing ?? '—',
+      metrics.bestProteinPerServing === p.proteinPerServing ? 'ok' : ''));
+
+    tr.appendChild(tdNum(p.caloriesPerServing ?? '—'));
+
+    tr.appendChild(tdNum(p.carbsPerServing ?? '—',
+      clsLow(metrics.minCarbs, p.carbsPerServing)));
+
+    tr.appendChild(tdNum(p.fatPerServing ?? '—',
+      clsLow(metrics.minFat, p.fatPerServing)));
+
+    const actions = document.createElement('td');
+    const rm = document.createElement('button'); rm.className='btn'; rm.textContent='Remove';
+    rm.onclick = ()=> window.Compare.remove(p.id);
+    actions.appendChild(rm);
+    tr.appendChild(actions);
+
+    body.appendChild(tr);
+  });
+
+  count.textContent = state.items.length;
+  empty.style.display = state.items.length ? 'none' : 'block';
+  persist();
+}
+
 
     count.textContent = state.items.length;
     empty.style.display = state.items.length ? 'none' : 'block';
