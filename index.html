@@ -173,51 +173,54 @@
     <footer>&copy; 2025 Protein Info. All rights reserved.</footer>
   </main>
 
-  <!-- SEARCH ENGINE LOGIC -->
-  <script>
-    const formEl = document.getElementById('brandSearchForm');
-    const resultsEl = document.getElementById('brandResults');
+  <!-- SEARCH LOGIC: fetches product data from /functions/search.js -->
+<script>
+  const formEl = document.getElementById('brandSearchForm');
+  const resultsEl = document.getElementById('brandResults');
 
-    formEl.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const query = formEl.q.value.trim();
-      if (!query) return;
+  formEl.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const query = formEl.q.value.trim();
+    resultsEl.textContent = "🔍 Searching...";
 
-      resultsEl.textContent = "🔍 Searching...";
+    try {
+      const res = await fetch(`/search?q=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Search failed");
 
-      try {
-        const res = await fetch(`/search?q=${encodeURIComponent(query)}`);
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Search failed");
-
-        if (!data.results?.length) {
-          resultsEl.textContent = "No protein brands found.";
-          return;
-        }
-
-        resultsEl.innerHTML = data.results.map(r => `
-          <article class="result">
-            <a href="${r.url}" rel="noopener">${r.name}</a>
-            <small>${r.displayUrl || r.url}</small>
-            <p style="margin:.5rem 0 0;line-height:1.5;">${r.snippet || ""}</p>
-
-            <!-- Example: wire an Add to Compare button if you have the needed fields -->
-            ${r.id ? `<button style="margin-top:.5rem" onclick='Compare.add(${JSON.stringify({
-              id: r.id,
-              brand: r.brand || r.name || "Unknown",
-              product: r.product || r.name || "Product",
-              type: r.type || "",
-              pricePerKg: r.pricePerKg || "",
-              servingSizeG: r.servingSizeG || "",
-              proteinPer100g: r.proteinPer100g || ""
-            })})'>Add to Compare</button>` : ""}
-          </article>
-        `).join('');
-      } catch (err) {
-        resultsEl.innerHTML = `<span style="color:red;">❌ ${err.message}</span>`;
+      const items = data.results || [];
+      if (!items.length) {
+        resultsEl.textContent = "No matching protein brands.";
+        return;
       }
-    });
-  </script>
+
+      // Render results as simple brand cards
+      resultsEl.innerHTML = items.map(p => `
+        <article class="result">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+            <div>
+              <div style="font-weight:700;">${p.brand}</div>
+              <div>${p.product}</div>
+              <div style="font-size:.9rem;color:#666;">${p.type || ""}</div>
+            </div>
+            <button class="btn" style="padding:.5rem .8rem;border:1px solid #e5e7eb;border-radius:10px;cursor:pointer"
+              onclick='Compare.add(${JSON.stringify(p)})'>
+              + Add to compare
+            </button>
+          </div>
+          <div style="margin-top:.5rem;font-size:.9rem;color:#444;">
+            <strong>Serving:</strong> ${p.servingSizeG ?? "—"} g ·
+            <strong>Protein/100g:</strong> ${p.proteinPer100g ?? "—"} g ·
+            <strong>Price/kg:</strong> ${p.pricePerKg != null ? "€"+p.pricePerKg.toFixed(2) : "—"}
+          </div>
+        </article>
+      `).join('');
+    } catch (err) {
+      resultsEl.innerHTML = `<span style="color:red;">❌ ${err.message}</span>`;
+    }
+  });
+</script>
+
 
   <!-- comparison logic -->
   <script src="assets/js/compare.js" defer></script>
