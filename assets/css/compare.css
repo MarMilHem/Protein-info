@@ -1,0 +1,34 @@
+:root {
+  --ui-bg: #fff; --ui-border: #e5e7eb; --ui-text: #111827; --ui-subtle: #6b7280;
+  --ui-accent: #2563eb; --radius: 16px;
+  --good: rgba(5,150,105,.08); --good-b: rgba(5,150,105,.25);
+  --ok: rgba(37,99,235,.08); --ok-b: rgba(37,99,235,.25);
+  --low: rgba(217,119,6,.08); --low-b: rgba(217,119,6,.25);
+}
+
+#compare-wrap { background: var(--ui-bg); border:1px solid var(--ui-border); border-radius: var(--radius);
+  box-shadow: 0 6px 22px rgba(0,0,0,.06); overflow:hidden; }
+#compare-head { display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between;
+  padding:16px 18px; border-bottom:1px solid var(--ui-border); }
+#compare-head h2 { margin:0; font-size:18px; font-weight:700; color:var(--ui-text); }
+.toolbar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+.toggle { display:inline-flex; gap:8px; align-items:center; padding:8px 10px; border:1px solid var(--ui-border);
+  border-radius:12px; background:#fafafa; }
+.btn { border:1px solid var(--ui-border); background:#f9fafb; padding:8px 12px; border-radius:12px; cursor:pointer; }
+.btn:hover{background:#f3f4f6;} .btn-primary{background:var(--ui-accent); color:#fff; border-color:var(--ui-accent);}
+.chip{font-size:12px; padding:3px 8px; border-radius:999px; border:1px solid var(--ui-border); background:#f8fafc; color:var(--ui-subtle);}
+
+.table-wrap { width:100%; overflow:auto; }
+table.compare { width:100%; border-collapse:separate; border-spacing:0; font-size:14px; }
+table.compare th, table.compare td { padding:10px 12px; border-bottom:1px solid var(--ui-border); white-space:nowrap; vertical-align:middle; }
+table.compare thead th { position:sticky; top:0; z-index:2; background:#f8fafc; font-weight:700; color:#111827; border-bottom:2px solid var(--ui-border); cursor:pointer; user-select:none; }
+table.compare tbody tr:hover{background:#fcfcfd;}
+.muted{color:var(--ui-subtle);} .num{text-align:right; font-variant-numeric:tabular-nums;}
+.best{background:var(--good); box-shadow:inset 0 0 0 1px var(--good-b);}
+.ok{background:var(--ok); box-shadow:inset 0 0 0 1px var(--ok-b);}
+.low{background:var(--low); box-shadow:inset 0 0 0 1px var(--low-b);}
+
+#compare-empty{ padding:28px; text-align:center; color:var(--ui-subtle); }
+
+@media (max-width:900px){ .hide-md{display:none;} }
+@media (max-width:640px){ .hide-sm{display:none;} .toolbar{gap:8px;} #compare-head h2{width:100%;} }
