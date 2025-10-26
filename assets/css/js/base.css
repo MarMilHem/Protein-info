@@ -1,0 +1,11 @@
+:root{--text:#e8ecff;--muted:#96a0ff;--brand:#6ea8ff}
+*{box-sizing:border-box}
+body{margin:0;color:var(--text);font-family:system-ui,Inter,Arial,sans-serif}
+.site-title{margin:28px 0 6px;font-size:clamp(1.6rem,4vw,2.2rem);color:var(--brand);text-align:center}
+.site-subtitle{text-align:center;color:var(--muted);margin:0 0 24px}
+.wip-badge{display:inline-block;margin:0 auto 24px; padding:.5rem .8rem; border:1px dashed #2b3570; border-radius:999px}
+main{max-width:900px;margin:0 auto;padding:0 16px 40px}
+.search-bar{display:flex;gap:8px;justify-content:center}
+.search-bar input{padding:.6rem .8rem;border-radius:10px;border:1px solid #2b3570;background:#0f1630;color:var(--text);min-width:280px}
+.search-bar button{padding:.6rem .9rem;border-radius:10px;border:1px solid #2b3570;background:#1a2140;color:var(--text);cursor:pointer}
+footer{opacity:.7;text-align:center;padding:24px 0}
