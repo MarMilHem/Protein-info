@@ -22,7 +22,7 @@ body {
   padding: 0;
   color: var(--text);
   font-family: system-ui, -apple-system, Inter, Arial, sans-serif;
-  background-color: var(--bg) !important; /* Force dark background */
+  background-color: var(--bg); /* Force dark background */
   line-height: 1.5;
 }
 .site-title{
