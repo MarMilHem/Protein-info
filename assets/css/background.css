@@ -1,14 +1,27 @@
-body {
-  margin: 0;
-  font-family: 'Poppins', sans-serif;
-  background: linear-gradient(270deg, #b8ffcc, #d9e7ff, #fff3b0);
+/* Animated gradient overlay */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(270deg, 
+    rgba(184, 255, 204, 0.03), 
+    rgba(217, 231, 255, 0.03), 
+    rgba(255, 243, 176, 0.03)
+  );
   background-size: 600% 600%;
   animation: gradientShift 15s ease infinite;
-  color: #1a1a1a;
+  pointer-events: none;  /* Allow clicks to pass through */
+  z-index: 0;           /* Place behind content */
 }
 
 @keyframes gradientShift {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
+}
+
+/* Ensure content appears above the gradient */
+main, header, footer {
+  position: relative;
+  z-index: 1;
 }
