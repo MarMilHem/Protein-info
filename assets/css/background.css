@@ -1,4 +1,4 @@
-/* Dark theme with subtle gradient */
+/* Dark theme with subtle gradient and fitness symbols */
 .bg-gradient {
   position: fixed;
   top: 0;
@@ -13,6 +13,22 @@
   );
   opacity: 0.7;
   z-index: -1;
+}
+
+/* Fitness symbols overlay */
+.bg-gradient::before {
+  content: "🥗 💪 🏃 🥛 🥜";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  grid-template-rows: repeat(10, 1fr);
+  font-size: 24px;
+  opacity: 0.03;
+  animation: symbolFloat 60s linear infinite;
+  transform: rotate(-5deg);
+  pointer-events: none;
+  overflow: hidden;
 }
 
 /* Animated gradient overlay */
@@ -34,6 +50,20 @@
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
+}
+
+@keyframes symbolFloat {
+  0% { 
+    background-position: 0 0;
+    transform: rotate(-5deg) translateY(0);
+  }
+  50% {
+    transform: rotate(-5deg) translateY(-20px);
+  }
+  100% { 
+    background-position: -100% -100%;
+    transform: rotate(-5deg) translateY(0);
+  }
 }
 
 /* Ensure content appears above the gradient */
