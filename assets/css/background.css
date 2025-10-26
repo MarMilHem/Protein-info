@@ -1,7 +1,24 @@
-/* Animated gradient overlay */
-body::before {
-  content: "";
+/* Dark theme with subtle gradient */
+.bg-gradient {
   position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    var(--bg) 0%,
+    #0c1020 50%,
+    var(--bg) 100%
+  );
+  opacity: 0.7;
+  z-index: -1;
+}
+
+/* Animated gradient overlay */
+.bg-gradient::after {
+  content: "";
+  position: absolute;
   inset: 0;
   background: linear-gradient(270deg, 
     rgba(184, 255, 204, 0.03), 
@@ -10,8 +27,7 @@ body::before {
   );
   background-size: 600% 600%;
   animation: gradientShift 15s ease infinite;
-  pointer-events: none;  /* Allow clicks to pass through */
-  z-index: 0;           /* Place behind content */
+  pointer-events: none;
 }
 
 @keyframes gradientShift {

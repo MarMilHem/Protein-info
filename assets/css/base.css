@@ -1,16 +1,29 @@
-:root{
-  --text:#e8ecff;
-  --muted:#96a0ff;
-  --brand:#6ea8ff;
-  --bg:#070b1a;  /* Dark background color */
+:root {
+  --text: #e8ecff;
+  --muted: #96a0ff;
+  --brand: #6ea8ff;
+  --bg: #070b1a;
 }
-*{box-sizing:border-box}
-body{
-  margin:0;
-  color:var(--text);
-  font-family:system-ui,Inter,Arial,sans-serif;
-  background:var(--bg);  /* Use CSS variable for background */
-  min-height:100vh      /* Ensure full viewport height */
+
+/* Reset and base styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  min-height: 100vh;
+  width: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  color: var(--text);
+  font-family: system-ui, -apple-system, Inter, Arial, sans-serif;
+  background-color: var(--bg) !important; /* Force dark background */
+  line-height: 1.5;
 }
 .site-title{
   margin:28px 0 12px;
